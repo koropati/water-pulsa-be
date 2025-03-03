@@ -1,0 +1,140 @@
+// prisma/schema.prisma
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id        String   @id @default(cuid())
+    email     String   @unique
+    password  String
+    name      String?
+    role      String   @default("STAFF")
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Portfolio relations
+    devices Device[]
+    apiKeys ApiKey[]
+    profile Profile?
+
+    @@index([email])
+}
+
+model Profile {
+    id          String   @id @default(cuid())
+    phoneNumber String?
+    address     String?
+    avatar      String?
+    userId      String   @unique
+    user        User     @relation(fields: [userId], references: [id])
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    @@index([userId])
+    @@index([phoneNumber])
+    @@index([address])
+}
+
+model Device {
+    id        String  @id @default(cuid())
+    deviceKey String
+    status    Boolean @default(false)
+    userId    String
+    user      User    @relation(fields: [userId], references: [id])
+
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @updatedAt
+    tokens    Token[]
+    UsageLog  UsageLog[]
+    Balance   Balance?
+
+    @@index([deviceKey])
+    @@index([userId])
+    @@index([status])
+}
+
+model Token {
+    id        String    @id @default(cuid())
+    deviceId  String
+    token     String    @unique
+    amount    Float
+    status    String    @default("unused") //used
+    used_at   DateTime?
+    device    Device    @relation(fields: [deviceId], references: [id])
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+
+    @@index([deviceId])
+    @@index([token])
+    @@index([amount])
+    @@index([status])
+    @@index([used_at])
+}
+
+model Balance {
+    id        String   @id @default(cuid())
+    deviceId  String   @unique
+    balance   Float
+    lastToken String
+    device    Device   @relation(fields: [deviceId], references: [id])
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([deviceId])
+    @@index([balance])
+    @@index([lastToken])
+}
+
+model UsageLog {
+    id          String   @id @default(cuid())
+    deviceId    String
+    usageAmount Float
+    timeStamp   DateTime
+    device      Device   @relation(fields: [deviceId], references: [id])
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    @@index([deviceId])
+    @@index([usageAmount])
+    @@index([timeStamp])
+}
+
+model ApiKey {
+    id           String        @id @default(cuid())
+    name         String // Nama/deskripsi untuk API key
+    key          String        @unique // API key yang di-hash
+    userId       String // Pemilik API key
+    user         User          @relation(fields: [userId], references: [id])
+    status       Boolean       @default(true) // true = active, false = inactive
+    expiresAt    DateTime? // Tanggal kadaluarsa (optional)
+    lastUsedAt   DateTime? // Terakhir digunakan
+    createdAt    DateTime      @default(now())
+    updatedAt    DateTime      @updatedAt
+    usageHistory ApiKeyUsage[]
+
+    @@index([userId])
+    @@index([key])
+    @@index([status])
+    @@index([expiresAt])
+}
+
+model ApiKeyUsage {
+    id        String   @id @default(cuid())
+    apiKeyId  String
+    apiKey    ApiKey   @relation(fields: [apiKeyId], references: [id])
+    ipAddress String
+    userAgent String? // Browser info
+    method    String // HTTP method used
+    path      String // Endpoint yang diakses
+    timestamp DateTime @default(now())
+    metadata  Json? // Menyimpan metadata tambahan
+
+    @@index([apiKeyId])
+    @@index([ipAddress])
+    @@index([timestamp])
+}

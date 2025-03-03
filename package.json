@@ -1,0 +1,53 @@
+{
+    "name": "sipelayar-api",
+    "version": "1.0.0",
+    "description": "API backend for Sipelayar application",
+    "main": "src/server.js",
+    "scripts": {
+        "start": "node src/server.js",
+        "dev": "nodemon src/server.js",
+        "dev:no-swagger": "cross-env SKIP_SWAGGER=true nodemon src/server.js",
+        "lint": "eslint src/",
+        "prisma:generate": "prisma generate",
+        "prisma:migrate": "prisma migrate dev",
+        "prisma:studio": "prisma studio",
+        "prisma:seed": "node prisma/seed.js",
+        "prisma:reset": "prisma migrate reset",
+        "swagger:generate": "node src/config/swagger.js",
+        "predev": "npm run swagger:generate && node mkdir.js",
+        "prestart": "npm run swagger:generate && node mkdir.js",
+        "setup": "node mkdir.js"
+    },
+    "keywords": [
+        "api",
+        "nodejs",
+        "express",
+        "prisma",
+        "sipelayar"
+    ],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "@prisma/client": "^6.4.0",
+        "bcryptjs": "^2.4.3",
+        "compression": "^1.7.4",
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "express-rate-limit": "^7.1.5",
+        "express-validator": "^7.0.1",
+        "helmet": "^7.1.0",
+        "jsonwebtoken": "^9.0.2",
+        "morgan": "^1.10.0",
+        "multer": "^1.4.5-lts.1",
+        "swagger-jsdoc": "^6.2.8",
+        "swagger-ui-express": "^5.0.0",
+        "winston": "^3.11.0"
+    },
+    "devDependencies": {
+        "cross-env": "^7.0.3",
+        "eslint": "^8.57.0",
+        "nodemon": "^3.0.3",
+        "prisma": "^6.4.0"
+    }
+}
