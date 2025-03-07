@@ -118,9 +118,7 @@ const getBalanceByDevice = async (req, res, next) => {
             req.user.id,
             req.user.role
         );
-        return success(res, STATUS_CODES.SUCCESS, 'Balance retrieved successfully', {
-            balance
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'Balance retrieved successfully', balance);
     } catch (err) {
         logger.error(`Error getting balance: ${err.message}`);
         return next(err);
@@ -238,9 +236,7 @@ const updateBalance = async (req, res, next) => {
             req.user.role
         );
 
-        return success(res, STATUS_CODES.SUCCESS, 'Balance updated successfully', {
-            balance
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'Balance updated successfully', balance);
     } catch (err) {
         logger.error(`Error updating balance: ${err.message}`);
         return next(err);
@@ -269,9 +265,7 @@ const getBalanceStats = async (req, res, next) => {
             req.user.id,
             req.user.role
         );
-        return success(res, STATUS_CODES.SUCCESS, 'Balance stats retrieved successfully', {
-            stats
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'Balance stats retrieved successfully', stats);
     } catch (err) {
         logger.error(`Error getting balance stats: ${err.message}`);
         return next(err);

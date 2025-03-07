@@ -29,12 +29,10 @@ const getCurrentUser = async (req, res, next) => {
         } = req.user;
 
         return success(res, STATUS_CODES.SUCCESS, 'User profile retrieved successfully', {
-            user: {
-                id,
-                name,
-                email,
-                role
-            }
+            id,
+            name,
+            email,
+            role
         });
     } catch (err) {
         logger.error(`Get user profile error: ${err.message}`);
@@ -91,9 +89,7 @@ const updateUserProfile = async (req, res, next) => {
             }
         });
 
-        return success(res, STATUS_CODES.SUCCESS, 'User profile updated successfully', {
-            user: updatedUser
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'User profile updated successfully', updatedUser);
     } catch (err) {
         logger.error(`Update user profile error: ${err.message}`);
         return next(err);

@@ -3,6 +3,7 @@
 // User roles
 const ROLES = {
     ADMIN: 'ADMIN',
+    SUPER_ADMIN: 'SUPER_ADMIN',
     STAFF: 'STAFF',
     USER: 'USER'
 };
@@ -10,6 +11,8 @@ const ROLES = {
 // Role-based permission
 const ROLE_PERMISSIONS = {
     // Admin can do everything
+    [ROLES.SUPER_ADMIN]: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    
     [ROLES.ADMIN]: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
 
     // Staff can read and write, but not delete

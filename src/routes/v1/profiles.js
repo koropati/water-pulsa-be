@@ -51,6 +51,6 @@ router.delete('/avatar', deleteProfileAvatar);
 router.delete('/', deleteProfile);
 
 // Get profile by ID (admin only)
-router.get('/:id', restrictTo(ROLES.ADMIN), getProfileById);
+router.get('/:id', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), getProfileById);
 
 module.exports = router;

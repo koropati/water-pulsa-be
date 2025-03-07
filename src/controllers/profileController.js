@@ -32,9 +32,7 @@ const {
 const getCurrentProfile = async (req, res, next) => {
     try {
         const profile = await profileService.getProfileByUserId(req.user.id);
-        return success(res, STATUS_CODES.SUCCESS, 'Profile retrieved successfully', {
-            profile
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'Profile retrieved successfully', profile);
     } catch (err) {
         logger.error(`Error getting profile: ${err.message}`);
         return next(err);
@@ -87,9 +85,7 @@ const updateProfile = async (req, res, next) => {
             fileData
         );
 
-        return success(res, STATUS_CODES.SUCCESS, 'Profile updated successfully', {
-            profile
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'Profile updated successfully', profile);
     } catch (err) {
         logger.error(`Error updating profile: ${err.message}`);
         return next(err);
@@ -115,9 +111,7 @@ const updateProfile = async (req, res, next) => {
 const getProfileAvatar = async (req, res, next) => {
     try {
         const avatar = await profileService.getProfileAvatar(req.user.id);
-        return success(res, STATUS_CODES.SUCCESS, 'Avatar retrieved successfully', {
-            avatar
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'Avatar retrieved successfully', avatar);
     } catch (err) {
         logger.error(`Error getting avatar: ${err.message}`);
         return next(err);
@@ -145,9 +139,7 @@ const getProfileAvatar = async (req, res, next) => {
 const deleteProfileAvatar = async (req, res, next) => {
     try {
         const profile = await profileService.deleteProfileAvatar(req.user.id);
-        return success(res, STATUS_CODES.SUCCESS, 'Avatar deleted successfully', {
-            profile
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'Avatar deleted successfully', profile);
     } catch (err) {
         logger.error(`Error deleting avatar: ${err.message}`);
         return next(err);
@@ -213,9 +205,7 @@ const getProfileById = async (req, res, next) => {
             req.params.id,
             req.user.role
         );
-        return success(res, STATUS_CODES.SUCCESS, 'Profile retrieved successfully', {
-            profile
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'Profile retrieved successfully', profile);
     } catch (err) {
         logger.error(`Error getting profile by ID: ${err.message}`);
         return next(err);

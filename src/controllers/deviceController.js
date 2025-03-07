@@ -116,9 +116,7 @@ const getDeviceById = async (req, res, next) => {
             req.user.id,
             req.user.role
         );
-        return success(res, STATUS_CODES.SUCCESS, 'Device retrieved successfully', {
-            device
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'Device retrieved successfully', device);
     } catch (err) {
         logger.error(`Error getting device: ${err.message}`);
         return next(err);
@@ -225,9 +223,7 @@ const updateDevice = async (req, res, next) => {
             req.user.id,
             req.user.role
         );
-        return success(res, STATUS_CODES.SUCCESS, 'Device updated successfully', {
-            device: updatedDevice
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'Device updated successfully', updatedDevice);
     } catch (err) {
         logger.error(`Error updating device: ${err.message}`);
         return next(err);
@@ -351,9 +347,7 @@ const getDeviceStats = async (req, res, next) => {
             req.user.id,
             req.user.role
         );
-        return success(res, STATUS_CODES.SUCCESS, 'Device stats retrieved successfully', {
-            stats
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'Device stats retrieved successfully', stats);
     } catch (err) {
         logger.error(`Error getting device stats: ${err.message}`);
         return next(err);

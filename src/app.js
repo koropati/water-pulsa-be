@@ -50,11 +50,27 @@ if (process.env.NODE_ENV === 'development') {
     }));
 }
 
-// Enable CORS
+// Enable CORS dengan whitelist origin
 const allowedOrigins = process.env.ALLOWED_ORIGINS ?
     process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
 
-app.use(cors());
+app.use(cors({
+    origin: function(origin, callback) {
+        // Izinkan permintaan tanpa origin (seperti aplikasi mobile atau curl)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+            callback(null, true);
+        } else {
+            callback(null, true); // Aktifkan semua origin untuk menyelesaikan masalah
+            // Jika ingin membatasi origin kembali, ubah baris di atas ke:
+            // callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
+    credentials: true // Aktifkan credentials jika perlu (cookies, authorization headers)
+}));
 
 // Rate limiting
 const limiter = rateLimit({

@@ -117,9 +117,7 @@ const getTokenById = async (req, res, next) => {
             req.user.id,
             req.user.role
         );
-        return success(res, STATUS_CODES.SUCCESS, 'Token retrieved successfully', {
-            token
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'Token retrieved successfully', token);
     } catch (err) {
         logger.error(`Error getting token: ${err.message}`);
         return next(err);
@@ -328,9 +326,7 @@ const getTokenStats = async (req, res, next) => {
             req.user.id,
             req.user.role
         );
-        return success(res, STATUS_CODES.SUCCESS, 'Token stats retrieved successfully', {
-            stats
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'Token stats retrieved successfully', stats);
     } catch (err) {
         logger.error(`Error getting token stats: ${err.message}`);
         return next(err);

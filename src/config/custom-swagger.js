@@ -12,7 +12,7 @@ const swaggerUiOptions = {
         .swagger-ui .info { margin: 20px 0; }
         .swagger-ui .info .title { font-size: 32px; }
         .auth-wrapper { display: flex; justify-content: center; margin-bottom: 20px; }
-        .auth-container { width: 400px; padding: 20px; border: 1px solid #d9d9d9; border-radius: 4px; margin-bottom: 20px; }
+        .auth-container { width: 400px; padding: 20px; border: 1px solid #d9d9d9; border-radius: 4px; margin: 10px; }
         .auth-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; }
         .auth-form { display: flex; flex-direction: column; }
         .auth-form input { margin-bottom: 10px; padding: 8px; border: 1px solid #d9d9d9; border-radius: 4px; }
@@ -26,7 +26,10 @@ const swaggerUiOptions = {
         .auth-tab.active { background-color: #4990e2; color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .auth-apikey-container { width: 400px; padding: 20px; border: 1px solid #d9d9d9; border-radius: 4px; margin-bottom: 20px; }
+        .auth-apikey-container { width: 400px; padding: 20px; border: 1px solid #d9d9d9; border-radius: 4px; margin: 10px; }
+        .export-container { display: flex; justify-content: center; margin-top: 20px; }
+        .export-button { padding: 10px 15px; background-color: #4990e2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .export-button:hover { background-color: #3470b3; }
     `,
     customJs: '/api-docs/custom.js',
     customSiteTitle: 'Sipelayar API Documentation',
@@ -77,6 +80,34 @@ const customJs = `
             const infoSection = document.querySelector('.swagger-ui .information-container');
             if (infoSection && infoSection.parentNode) {
                 infoSection.parentNode.insertBefore(authWrapper, infoSection.nextSibling);
+            }
+            
+            // Create export button container
+            const exportContainer = document.createElement('div');
+            exportContainer.className = 'export-container';
+            
+            // Create export button
+            const exportButton = document.createElement('button');
+            exportButton.className = 'export-button';
+            exportButton.textContent = 'Export OpenAPI Spec (JSON)';
+            exportButton.addEventListener('click', function() {
+                // Get the spec URL from the current page
+                const specUrl = '/api-docs/swagger.json';
+                
+                // Create a download link
+                const downloadLink = document.createElement('a');
+                downloadLink.href = specUrl;
+                downloadLink.download = 'openapi-spec.json';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            });
+            
+            exportContainer.appendChild(exportButton);
+            
+            // Insert after auth wrapper
+            if (authWrapper.parentNode) {
+                authWrapper.parentNode.insertBefore(exportContainer, authWrapper.nextSibling);
             }
             
             // Add event listener to login button
@@ -160,6 +191,7 @@ const customJs = `
                 
                 // Update Swagger UI auth
                 const apiKeyInput = document.querySelector('.swagger-ui .auth-wrapper input[data-component="security-definitions-apiKey-ApiKeyAuth-x-api-key"]');
+                
                 if (apiKeyInput) {
                     apiKeyInput.value = apiKey;
                     
@@ -185,8 +217,33 @@ const customJs = `
                     resultDiv.textContent = 'API key applied successfully!';
                     resultDiv.className = 'auth-result auth-success';
                 } else {
-                    resultDiv.textContent = 'Could not find API key input field';
-                    resultDiv.className = 'auth-result auth-error';
+                    // Debug: Show all available authentication inputs
+                    const allAuthInputs = document.querySelectorAll('.swagger-ui .auth-wrapper input');
+                    console.log('All available auth inputs:', allAuthInputs);
+                    
+                    // Try a more general selector
+                    const anyApiKeyInput = document.querySelector('.swagger-ui .auth-wrapper input[placeholder="api_key"]') || 
+                                           document.querySelector('.swagger-ui .auth-wrapper input[placeholder*="API"]') ||
+                                           document.querySelector('.swagger-ui input[placeholder*="key"]');
+                    
+                    if (anyApiKeyInput) {
+                        anyApiKeyInput.value = apiKey;
+                        const event = new Event('change');
+                        anyApiKeyInput.dispatchEvent(event);
+                        
+                        // Show success message
+                        resultDiv.textContent = 'API key applied using alternative selector';
+                        resultDiv.className = 'auth-result auth-success';
+                    } else {
+                        resultDiv.textContent = 'Could not find API key input field. Please apply it manually in the Authorize dialog.';
+                        resultDiv.className = 'auth-result auth-error';
+                        
+                        // Open the authorize dialog anyway to help the user
+                        const authorizeBtn = Array.from(document.querySelectorAll('.swagger-ui button.btn')).find(btn => btn.textContent.includes('Authorize'));
+                        if (authorizeBtn) {
+                            authorizeBtn.click();
+                        }
+                    }
                 }
             });
             
@@ -250,6 +307,13 @@ const setupCustomSwaggerUI = (app, swaggerDocument) => {
 
     // Serve static files
     app.use('/api-docs', express.static(staticDir));
+
+    // Serve the OpenAPI spec as JSON for download
+    app.get('/api-docs/swagger.json', (req, res) => {
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', 'attachment; filename=openapi-spec.json');
+        res.send(JSON.stringify(swaggerDocument, null, 2));
+    });
 
     // Setup Swagger UI with custom options
     app.use('/api-docs', swaggerUi.serve);

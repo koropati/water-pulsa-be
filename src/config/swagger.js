@@ -24,7 +24,7 @@ const swaggerDefinition = {
     },
     servers: [{
         url: '/api/v1',
-        description: 'Development server',
+        description: 'V1 Development server',
     }],
     components: {
         securitySchemes: {
@@ -42,6 +42,14 @@ const swaggerDefinition = {
             }
         },
     },
+    // Ensure these global security requirements are applied
+    security: [{
+            BearerAuth: []
+        },
+        {
+            ApiKeyAuth: []
+        }
+    ]
 };
 
 // Options for the swagger docs
@@ -90,4 +98,5 @@ const generateSwaggerDocs = () => {
 
 module.exports = {
     generateSwaggerDocs,
+    swaggerSpec // Export the spec for other modules to use
 };

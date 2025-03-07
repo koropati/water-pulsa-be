@@ -100,9 +100,7 @@ const getAllUsers = async (req, res, next) => {
 const getUserById = async (req, res, next) => {
     try {
         const user = await userService.getUserById(req.params.id);
-        return success(res, STATUS_CODES.SUCCESS, 'User retrieved successfully', {
-            user
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'User retrieved successfully', user);
     } catch (err) {
         logger.error(`Error getting user: ${err.message}`);
         return next(err);
@@ -215,9 +213,7 @@ const updateUser = async (req, res, next) => {
             req.body,
             req.user.role
         );
-        return success(res, STATUS_CODES.SUCCESS, 'User updated successfully', {
-            user: updatedUser
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'User updated successfully', updatedUser);
     } catch (err) {
         logger.error(`Error updating user: ${err.message}`);
         return next(err);
@@ -280,9 +276,7 @@ const deleteUser = async (req, res, next) => {
 const getUserStats = async (req, res, next) => {
     try {
         const stats = await userService.getUserStats(req.user.role);
-        return success(res, STATUS_CODES.SUCCESS, 'User stats retrieved successfully', {
-            stats
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'User stats retrieved successfully', stats);
     } catch (err) {
         logger.error(`Error getting user stats: ${err.message}`);
         return next(err);

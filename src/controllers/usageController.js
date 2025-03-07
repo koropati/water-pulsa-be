@@ -279,9 +279,7 @@ const getUsageStats = async (req, res, next) => {
             }
         );
 
-        return success(res, STATUS_CODES.SUCCESS, 'Usage stats retrieved successfully', {
-            stats
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'Usage stats retrieved successfully', stats);
     } catch (err) {
         logger.error(`Error getting usage stats: ${err.message}`);
         return next(err);

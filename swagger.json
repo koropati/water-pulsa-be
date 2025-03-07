@@ -16,7 +16,7 @@
   "servers": [
     {
       "url": "/api/v1",
-      "description": "Development server"
+      "description": "V1 Development server"
     }
   ],
   "components": {
@@ -35,6 +35,14 @@
       }
     }
   },
+  "security": [
+    {
+      "BearerAuth": []
+    },
+    {
+      "ApiKeyAuth": []
+    }
+  ],
   "paths": {
     "/device/auth": {
       "post": {

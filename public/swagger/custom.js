@@ -41,6 +41,34 @@
                 infoSection.parentNode.insertBefore(authWrapper, infoSection.nextSibling);
             }
             
+            // Create export button container
+            const exportContainer = document.createElement('div');
+            exportContainer.className = 'export-container';
+            
+            // Create export button
+            const exportButton = document.createElement('button');
+            exportButton.className = 'export-button';
+            exportButton.textContent = 'Export OpenAPI Spec (JSON)';
+            exportButton.addEventListener('click', function() {
+                // Get the spec URL from the current page
+                const specUrl = '/api-docs/swagger.json';
+                
+                // Create a download link
+                const downloadLink = document.createElement('a');
+                downloadLink.href = specUrl;
+                downloadLink.download = 'openapi-spec.json';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            });
+            
+            exportContainer.appendChild(exportButton);
+            
+            // Insert after auth wrapper
+            if (authWrapper.parentNode) {
+                authWrapper.parentNode.insertBefore(exportContainer, authWrapper.nextSibling);
+            }
+            
             // Add event listener to login button
             document.getElementById('auth-submit').addEventListener('click', function() {
                 const email = document.getElementById('auth-email').value;
@@ -122,6 +150,7 @@
                 
                 // Update Swagger UI auth
                 const apiKeyInput = document.querySelector('.swagger-ui .auth-wrapper input[data-component="security-definitions-apiKey-ApiKeyAuth-x-api-key"]');
+                
                 if (apiKeyInput) {
                     apiKeyInput.value = apiKey;
                     
@@ -147,8 +176,33 @@
                     resultDiv.textContent = 'API key applied successfully!';
                     resultDiv.className = 'auth-result auth-success';
                 } else {
-                    resultDiv.textContent = 'Could not find API key input field';
-                    resultDiv.className = 'auth-result auth-error';
+                    // Debug: Show all available authentication inputs
+                    const allAuthInputs = document.querySelectorAll('.swagger-ui .auth-wrapper input');
+                    console.log('All available auth inputs:', allAuthInputs);
+                    
+                    // Try a more general selector
+                    const anyApiKeyInput = document.querySelector('.swagger-ui .auth-wrapper input[placeholder="api_key"]') || 
+                                           document.querySelector('.swagger-ui .auth-wrapper input[placeholder*="API"]') ||
+                                           document.querySelector('.swagger-ui input[placeholder*="key"]');
+                    
+                    if (anyApiKeyInput) {
+                        anyApiKeyInput.value = apiKey;
+                        const event = new Event('change');
+                        anyApiKeyInput.dispatchEvent(event);
+                        
+                        // Show success message
+                        resultDiv.textContent = 'API key applied using alternative selector';
+                        resultDiv.className = 'auth-result auth-success';
+                    } else {
+                        resultDiv.textContent = 'Could not find API key input field. Please apply it manually in the Authorize dialog.';
+                        resultDiv.className = 'auth-result auth-error';
+                        
+                        // Open the authorize dialog anyway to help the user
+                        const authorizeBtn = Array.from(document.querySelectorAll('.swagger-ui button.btn')).find(btn => btn.textContent.includes('Authorize'));
+                        if (authorizeBtn) {
+                            authorizeBtn.click();
+                        }
+                    }
                 }
             });
             

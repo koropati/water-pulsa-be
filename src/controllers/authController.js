@@ -240,9 +240,7 @@ const logout = (req, res) => {
  *         description: Not authenticated
  */
 const getCurrentUser = (req, res) => {
-    return success(res, STATUS_CODES.SUCCESS, 'Current user', {
-        user: req.user
-    });
+    return success(res, STATUS_CODES.SUCCESS, 'Current user', req.user);
 };
 
 module.exports = {

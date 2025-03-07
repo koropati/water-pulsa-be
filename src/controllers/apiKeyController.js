@@ -112,9 +112,7 @@ const getApiKeyById = async (req, res, next) => {
             req.user.id,
             req.user.role
         );
-        return success(res, STATUS_CODES.SUCCESS, 'API key retrieved successfully', {
-            apiKey
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'API key retrieved successfully', apiKey);
     } catch (err) {
         logger.error(`Error getting API key: ${err.message}`);
         return next(err);
@@ -225,9 +223,7 @@ const updateApiKey = async (req, res, next) => {
             req.user.id,
             req.user.role
         );
-        return success(res, STATUS_CODES.SUCCESS, 'API key updated successfully', {
-            apiKey: updatedApiKey
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'API key updated successfully', updatedApiKey);
     } catch (err) {
         logger.error(`Error updating API key: ${err.message}`);
         return next(err);
@@ -361,9 +357,7 @@ const getApiKeyStats = async (req, res, next) => {
             req.user.id,
             req.user.role
         );
-        return success(res, STATUS_CODES.SUCCESS, 'API key stats retrieved successfully', {
-            stats
-        });
+        return success(res, STATUS_CODES.SUCCESS, 'API key stats retrieved successfully', stats);
     } catch (err) {
         logger.error(`Error getting API key stats: ${err.message}`);
         return next(err);

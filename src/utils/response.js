@@ -58,8 +58,8 @@ const error = (res, statusCode = STATUS_CODES.INTERNAL_ERROR, message = 'Error',
 const paginate = (res, data, total, page, limit, message = 'Success') => {
     const totalPages = Math.ceil(total / limit);
 
-    return success(res, STATUS_CODES.SUCCESS, message, {
-        data,
+    const response = {
+        status: 'success',
         meta: {
             total,
             page,
@@ -67,8 +67,15 @@ const paginate = (res, data, total, page, limit, message = 'Success') => {
             totalPages,
             hasNextPage: page < totalPages,
             hasPrevPage: page > 1
-        }
-    });
+        },
+        message
+    };
+
+    if (data !== null) {
+        response.data = data;
+    }
+
+    return res.status(STATUS_CODES.SUCCESS).json(response);
 };
 
 module.exports = {

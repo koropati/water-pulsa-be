@@ -33,21 +33,21 @@ const router = express.Router();
 router.use(protect);
 
 // Get all users (admin only)
-router.get('/', restrictTo(ROLES.ADMIN), getAllUsers);
+router.get('/', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), getAllUsers);
 
 // Get user stats (admin only)
-router.get('/stats', restrictTo(ROLES.ADMIN), getUserStats);
+router.get('/stats', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), getUserStats);
 
 // Get user by ID (admin only)
-router.get('/:id', restrictTo(ROLES.ADMIN), getUserById);
+router.get('/:id', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), getUserById);
 
 // Create a new user (admin only)
-router.post('/', restrictTo(ROLES.ADMIN), validate(rules.createUser), createUser);
+router.post('/', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), validate(rules.createUser), createUser);
 
 // Update a user (admin only)
-router.put('/:id', restrictTo(ROLES.ADMIN), validate(rules.updateUser), updateUser);
+router.put('/:id', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), validate(rules.updateUser), updateUser);
 
 // Delete a user (admin only)
-router.delete('/:id', restrictTo(ROLES.ADMIN), deleteUser);
+router.delete('/:id', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), deleteUser);
 
 module.exports = router;
