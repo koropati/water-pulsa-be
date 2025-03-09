@@ -24,6 +24,7 @@ model User {
     profile Profile?
 
     @@index([email])
+    @@map("users")
 }
 
 model Profile {
@@ -39,6 +40,7 @@ model Profile {
     @@index([userId])
     @@index([phoneNumber])
     @@index([address])
+    @@map("profiles")
 }
 
 model Device {
@@ -57,6 +59,7 @@ model Device {
     @@index([deviceKey])
     @@index([userId])
     @@index([status])
+    @@map("devices")
 }
 
 model Token {
@@ -75,6 +78,7 @@ model Token {
     @@index([amount])
     @@index([status])
     @@index([used_at])
+    @@map("tokens")
 }
 
 model Balance {
@@ -89,6 +93,7 @@ model Balance {
     @@index([deviceId])
     @@index([balance])
     @@index([lastToken])
+    @@map("balances")
 }
 
 model UsageLog {
@@ -103,6 +108,7 @@ model UsageLog {
     @@index([deviceId])
     @@index([usageAmount])
     @@index([timeStamp])
+    @@map("usage_logs")
 }
 
 model ApiKey {
@@ -122,6 +128,7 @@ model ApiKey {
     @@index([key])
     @@index([status])
     @@index([expiresAt])
+    @@map("api_keys")
 }
 
 model ApiKeyUsage {
@@ -138,4 +145,5 @@ model ApiKeyUsage {
     @@index([apiKeyId])
     @@index([ipAddress])
     @@index([timestamp])
+    @@map("api_key_usages")
 }
