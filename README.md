@@ -114,6 +114,87 @@ npm run prisma:seed
 npm run prisma:studio
 ```
 
+## How to Run the Database Seeder
+
+The database seeder will create the following data:
+
+### Users & Profiles
+- Super Admin user with full access permissions
+- Admin user with admin-level access
+- Two Staff users with standard permissions
+
+### Devices
+- Multiple devices associated with the Admin and Staff users
+- Each device has a unique deviceKey
+- Some devices are active, others are inactive
+
+### API Keys
+- API keys for Admin and Staff users
+- Some with expiration dates, others without
+- All initially set to active status
+
+### Tokens
+- Multiple tokens associated with different devices
+- One token is set as "used" to demonstrate the token usage flow
+- Other tokens remain in "unused" status
+
+### Balance
+- Each device has a corresponding balance record
+- The used token has updated the balance of its associated device
+
+### Usage Logs
+- Sample usage logs for different devices
+- Different timestamps and usage amounts
+
+## Password Configuration
+
+You can configure the passwords used for seeded users in your `.env` file. You have two options:
+
+### Option 1: Set a single password for all users
+```
+SEED_DEFAULT_PASSWORD=your_secure_password
+```
+
+### Option 2: Set individual passwords for each user type
+```
+SEED_SUPER_ADMIN_PASSWORD=super_admin_password
+SEED_ADMIN_PASSWORD=admin_password
+SEED_STAFF_PASSWORD=staff_password
+```
+
+The individual passwords will override the default password if both are set. If no passwords are specified in the `.env` file, the seeder will use hardcoded defaults:
+- `superadmin123` for Super Admin
+- `admin123` for Admin
+- `staff123` for Staff users
+
+## Running the Seeder
+
+1. Make sure your database connection is properly configured in the `.env` file
+2. (Optional) Set the desired passwords in the `.env` file
+3. Run the seed script with:
+
+```bash
+npm run prisma:seed
+```
+
+4. After seeding completes, the script will output the login credentials that were used
+
+## Default Credentials (if not configured in .env)
+
+**Super Admin**
+- Email: superadmin@example.com
+- Password: superadmin123 (or value from SEED_SUPER_ADMIN_PASSWORD)
+
+**Admin**
+- Email: admin@example.com
+- Password: admin123 (or value from SEED_ADMIN_PASSWORD)
+
+**Staff Users**
+- Email: staff1@example.com or staff2@example.com
+- Password: staff123 (or value from SEED_STAFF_PASSWORD)
+
+**Note**: In a production environment, you should use strong passwords and keep them secure. The `.env` file should not be committed to version control.
+
 ## 🏃‍♂️ Running the Server
 
 ### Development Mode

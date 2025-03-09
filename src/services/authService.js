@@ -28,7 +28,7 @@ const register = async (userData) => {
         email,
         password,
         role = ROLES.STAFF,
-        isActive = true // Default to active
+        isActive = false // Default to false
     } = userData;
 
     // Check if user already exists
