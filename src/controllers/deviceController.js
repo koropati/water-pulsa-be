@@ -318,7 +318,10 @@ const getDevicesForDropdown = async (req, res, next) => {
             req.user.role
         );
 
-        return success(res, STATUS_CODES.SUCCESS, 'Devices retrieved successfully', result);
+        return success(res, STATUS_CODES.SUCCESS, 'Devices retrieved successfully', {
+            devices: result.devices,
+            meta: result.meta
+        });
     } catch (err) {
         logger.error(`Error getting devices for dropdown: ${err.message}`);
         return next(err);

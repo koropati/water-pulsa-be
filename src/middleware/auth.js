@@ -52,7 +52,8 @@ const protect = async (req, res, next) => {
                 id: true,
                 email: true,
                 role: true,
-                name: true
+                name: true,
+                isActive: true
             }
         });
 
@@ -62,7 +63,14 @@ const protect = async (req, res, next) => {
             );
         }
 
-        // 4) Grant access to protected route
+        // 4) Check if user is active
+        if (!user.isActive) {
+            return next(
+                new ApiError('Your account has been deactivated. Please contact an administrator.', STATUS_CODES.FORBIDDEN)
+            );
+        }
+
+        // 5) Grant access to protected route
         req.user = user;
         next();
     } catch (error) {
@@ -142,7 +150,8 @@ const validateApiKey = async (req, res, next) => {
                 user: {
                     select: {
                         id: true,
-                        role: true
+                        role: true,
+                        isActive: true
                     }
                 }
             }
@@ -151,6 +160,13 @@ const validateApiKey = async (req, res, next) => {
         if (!key) {
             return next(
                 new ApiError('Invalid or expired API key', STATUS_CODES.UNAUTHORIZED)
+            );
+        }
+
+        // Check if user associated with API key is active
+        if (!key.user.isActive) {
+            return next(
+                new ApiError('User account is inactive', STATUS_CODES.FORBIDDEN)
             );
         }
 

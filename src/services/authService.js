@@ -27,7 +27,8 @@ const register = async (userData) => {
         name,
         email,
         password,
-        role = ROLES.STAFF
+        role = ROLES.STAFF,
+        isActive = true // Default to active
     } = userData;
 
     // Check if user already exists
@@ -51,6 +52,7 @@ const register = async (userData) => {
             email,
             password: hashedPassword,
             role,
+            isActive,
             profile: {
                 create: {} // Create empty profile
             }
@@ -60,6 +62,7 @@ const register = async (userData) => {
             name: true,
             email: true,
             role: true,
+            isActive: true,
             createdAt: true
         }
     });
@@ -94,12 +97,18 @@ const login = async (email, password) => {
             email: true,
             password: true,
             name: true,
-            role: true
+            role: true,
+            isActive: true
         }
     });
 
     if (!user) {
         throw new ApiError('Invalid email or password', STATUS_CODES.UNAUTHORIZED);
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+        throw new ApiError('Your account has been deactivated. Please contact an administrator.', STATUS_CODES.FORBIDDEN);
     }
 
     // Check password
@@ -146,6 +155,11 @@ const changePassword = async (userId, currentPassword, newPassword) => {
         throw new ApiError('User not found', STATUS_CODES.NOT_FOUND);
     }
 
+    // Check if user is active
+    if (!user.isActive) {
+        throw new ApiError('Your account has been deactivated. Please contact an administrator.', STATUS_CODES.FORBIDDEN);
+    }
+
     // Verify current password
     const isValidPassword = await bcrypt.compare(currentPassword, user.password);
     if (!isValidPassword) {
@@ -183,6 +197,7 @@ const getCurrentUser = async (userId) => {
             name: true,
             email: true,
             role: true,
+            isActive: true,
             createdAt: true,
             updatedAt: true
         }
@@ -190,6 +205,11 @@ const getCurrentUser = async (userId) => {
 
     if (!user) {
         throw new ApiError('User not found', STATUS_CODES.NOT_FOUND);
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+        throw new ApiError('Your account has been deactivated. Please contact an administrator.', STATUS_CODES.FORBIDDEN);
     }
 
     return user;

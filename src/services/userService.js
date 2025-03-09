@@ -22,7 +22,7 @@ const {
  */
 const getAllUsers = async (options, userRole) => {
     const {
-        page = 1, limit = 10, search = ''
+        page = 1, limit = 10, search = '', isActive
     } = options;
     const skip = (page - 1) * limit;
 
@@ -34,6 +34,11 @@ const getAllUsers = async (options, userRole) => {
         where.role = {
             not: ROLES.ADMIN
         };
+    }
+
+    // Filter by isActive if provided
+    if (isActive !== undefined) {
+        where.isActive = isActive === 'true' || isActive === true;
     }
 
     // Add search if provided
@@ -66,6 +71,7 @@ const getAllUsers = async (options, userRole) => {
             name: true,
             email: true,
             role: true,
+            isActive: true,
             createdAt: true,
             updatedAt: true,
             _count: {
@@ -108,6 +114,7 @@ const getUserById = async (userId) => {
             name: true,
             email: true,
             role: true,
+            isActive: true,
             createdAt: true,
             updatedAt: true,
             profile: true,
@@ -137,7 +144,8 @@ const createUser = async (userData) => {
         name,
         email,
         password,
-        role = ROLES.STAFF
+        role = ROLES.STAFF,
+        isActive = true
     } = userData;
 
     // Check if user already exists
@@ -161,6 +169,7 @@ const createUser = async (userData) => {
             email,
             password: hashedPassword,
             role,
+            isActive,
             profile: {
                 create: {} // Create empty profile
             }
@@ -170,6 +179,7 @@ const createUser = async (userData) => {
             name: true,
             email: true,
             role: true,
+            isActive: true,
             createdAt: true
         }
     });
@@ -180,7 +190,7 @@ const createUser = async (userData) => {
 /**
  * Update a user
  * @param {String} userId - User ID
- * @param {Object} updateData - Data to update (name, email, role)
+ * @param {Object} updateData - Data to update (name, email, role, isActive)
  * @param {String} currentUserRole - Role of the user making the update
  * @returns {Object} Updated user
  */
@@ -188,7 +198,8 @@ const updateUser = async (userId, updateData, currentUserRole) => {
     const {
         name,
         email,
-        role
+        role,
+        isActive
     } = updateData;
 
     // Check if user exists
@@ -205,6 +216,11 @@ const updateUser = async (userId, updateData, currentUserRole) => {
     // Check permissions (only admins can change roles)
     if (role && currentUserRole !== ROLES.ADMIN) {
         throw new ApiError('You do not have permission to change roles', STATUS_CODES.FORBIDDEN);
+    }
+
+    // Check permissions (only admins can change isActive)
+    if (isActive !== undefined && currentUserRole !== ROLES.ADMIN) {
+        throw new ApiError('You do not have permission to change account status', STATUS_CODES.FORBIDDEN);
     }
 
     // Check if email is already in use by another user
@@ -228,6 +244,7 @@ const updateUser = async (userId, updateData, currentUserRole) => {
     if (name) data.name = name;
     if (email) data.email = email;
     if (role && currentUserRole === ROLES.ADMIN) data.role = role;
+    if (isActive !== undefined && currentUserRole === ROLES.ADMIN) data.isActive = isActive;
 
     // Update user
     const updatedUser = await prisma.user.update({
@@ -240,6 +257,7 @@ const updateUser = async (userId, updateData, currentUserRole) => {
             name: true,
             email: true,
             role: true,
+            isActive: true,
             createdAt: true,
             updatedAt: true
         }
@@ -276,6 +294,46 @@ const deleteUser = async (userId) => {
 };
 
 /**
+ * Toggle user active status
+ * @param {String} userId - User ID
+ * @param {Boolean} isActive - New active status
+ * @returns {Object} Updated user
+ */
+const toggleUserActiveStatus = async (userId, isActive) => {
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+        where: {
+            id: userId
+        }
+    });
+
+    if (!user) {
+        throw new ApiError('User not found', STATUS_CODES.NOT_FOUND);
+    }
+
+    // Update user active status
+    const updatedUser = await prisma.user.update({
+        where: {
+            id: userId
+        },
+        data: {
+            isActive
+        },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true
+        }
+    });
+
+    return updatedUser;
+};
+
+/**
  * Get user stats
  * @param {String} role - User role
  * @returns {Object} User statistics
@@ -291,9 +349,21 @@ const getUserStats = async (role) => {
     }
 
     // Get total counts
-    const [total, admins, staff, users] = await Promise.all([
+    const [total, active, inactive, admins, staff, users] = await Promise.all([
         prisma.user.count({
             where
+        }),
+        prisma.user.count({
+            where: {
+                ...where,
+                isActive: true
+            }
+        }),
+        prisma.user.count({
+            where: {
+                ...where,
+                isActive: false
+            }
         }),
         prisma.user.count({
             where: {
@@ -327,12 +397,15 @@ const getUserStats = async (role) => {
             name: true,
             email: true,
             role: true,
+            isActive: true,
             createdAt: true
         }
     });
 
     return {
         total,
+        active,
+        inactive,
         admins,
         staff,
         users,
@@ -346,5 +419,6 @@ module.exports = {
     createUser,
     updateUser,
     deleteUser,
+    toggleUserActiveStatus,
     getUserStats
 };

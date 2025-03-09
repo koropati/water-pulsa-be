@@ -6,7 +6,9 @@ const {
     createUser,
     updateUser,
     deleteUser,
-    getUserStats
+    getUserStats,
+    getUsersForDropdown,
+    toggleUserActiveStatus
 } = require('../../controllers/userController');
 const {
     validate,
@@ -38,6 +40,9 @@ router.get('/', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), getAllUsers);
 // Get user stats (admin only)
 router.get('/stats', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), getUserStats);
 
+// Get users for dropdown (SUPER_ADMIN and ADMIN only)
+router.get('/dropdown', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), getUsersForDropdown);
+
 // Get user by ID (admin only)
 router.get('/:id', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), getUserById);
 
@@ -49,5 +54,8 @@ router.put('/:id', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), validate(rules.up
 
 // Delete a user (admin only)
 router.delete('/:id', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), deleteUser);
+
+// Toggle user active status (admin only)
+router.patch('/:id/toggle-status', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), toggleUserActiveStatus);
 
 module.exports = router;

@@ -317,14 +317,15 @@ const getDevicesForDropdown = async (options, userId, userRole) => {
     // Build where clause
     const where = {};
 
-    // Non-admin users can only see their own devices
-    if (userRole !== ROLES.ADMIN) {
+    // STAFF users can only see their own devices
+    if (userRole === ROLES.STAFF) {
         where.userId = userId;
     }
 
     // Add search if provided
     if (search) {
-        where.OR = [{
+        where.OR = [
+            {
                 deviceKey: {
                     contains: search,
                     mode: 'insensitive'
@@ -332,18 +333,20 @@ const getDevicesForDropdown = async (options, userId, userRole) => {
             },
             {
                 user: {
-                    name: {
-                        contains: search,
-                        mode: 'insensitive'
-                    }
-                }
-            },
-            {
-                user: {
-                    email: {
-                        contains: search,
-                        mode: 'insensitive'
-                    }
+                    OR: [
+                        {
+                            name: {
+                                contains: search,
+                                mode: 'insensitive'
+                            }
+                        },
+                        {
+                            email: {
+                                contains: search,
+                                mode: 'insensitive'
+                            }
+                        }
+                    ]
                 }
             }
         ];
@@ -357,10 +360,7 @@ const getDevicesForDropdown = async (options, userId, userRole) => {
     // Get devices for dropdown
     const devices = await prisma.device.findMany({
         where,
-        select: {
-            id: true,
-            deviceKey: true,
-            status: true,
+        include: {
             user: {
                 select: {
                     id: true,
@@ -372,7 +372,7 @@ const getDevicesForDropdown = async (options, userId, userRole) => {
         skip,
         take: limit,
         orderBy: {
-            deviceKey: 'asc'
+            createdAt: 'desc'
         }
     });
 
@@ -382,7 +382,6 @@ const getDevicesForDropdown = async (options, userId, userRole) => {
             total,
             page: parseInt(page),
             limit: parseInt(limit),
-            totalPages: Math.ceil(total / limit),
             hasMore: skip + devices.length < total
         }
     };

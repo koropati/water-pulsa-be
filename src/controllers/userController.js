@@ -14,6 +14,9 @@ const {
 const {
     logger
 } = require('../utils/logger');
+const {
+    ROLES
+} = require('../../config/constants');
 
 /**
  * @swagger
@@ -283,11 +286,150 @@ const getUserStats = async (req, res, next) => {
     }
 };
 
+/**
+ * @swagger
+ * /users/dropdown:
+ *   get:
+ *     summary: Get users for dropdown selection
+ *     tags: [Users]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search term for name or email
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: List of users for dropdown
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - requires SUPER_ADMIN role
+ *       500:
+ *         description: Server error
+ */
+const getUsersForDropdown = async (req, res, next) => {
+    try {
+        // Check if user is SUPER_ADMIN
+        if (req.user.role !== ROLES.SUPER_ADMIN) {
+            return error(res, STATUS_CODES.FORBIDDEN, 'Unauthorized - requires SUPER_ADMIN role');
+        }
+
+        const options = {
+            ...getPaginationParams(req),
+            search: req.query.search
+        };
+
+        // Get all users (filtered by search if provided)
+        const result = await userService.getAllUsers(options, req.user.role);
+
+        // Format users for dropdown
+        const formattedUsers = result.users.map(user => ({
+            value: user.id,
+            label: `${user.name || 'User'} (${user.email})`
+        }));
+
+        return success(res, STATUS_CODES.SUCCESS, 'Users retrieved successfully', {
+            users: formattedUsers,
+            meta: {
+                total: result.meta.total,
+                page: result.meta.page,
+                limit: result.meta.limit,
+                hasMore: (result.meta.page * result.meta.limit) < result.meta.total
+            }
+        });
+    } catch (err) {
+        logger.error(`Error getting users for dropdown: ${err.message}`);
+        return next(err);
+    }
+};
+
+/**
+ * @swagger
+ * /users/{id}/toggle-status:
+ *   patch:
+ *     summary: Toggle user active status
+ *     tags: [Users]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - isActive
+ *             properties:
+ *               isActive:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: User status updated successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: User not found
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Server error
+ */
+const toggleUserActiveStatus = async (req, res, next) => {
+    try {
+        const { isActive } = req.body;
+        
+        if (typeof isActive !== 'boolean') {
+            return error(res, STATUS_CODES.BAD_REQUEST, 'isActive must be a boolean value');
+        }
+        
+        const updatedUser = await userService.toggleUserActiveStatus(
+            req.params.id,
+            isActive
+        );
+        
+        return success(
+            res, 
+            STATUS_CODES.SUCCESS, 
+            `User ${isActive ? 'activated' : 'deactivated'} successfully`, 
+            updatedUser
+        );
+    } catch (err) {
+        logger.error(`Error toggling user status: ${err.message}`);
+        return next(err);
+    }
+};
+
 module.exports = {
     getAllUsers,
     getUserById,
     createUser,
     updateUser,
     deleteUser,
-    getUserStats
+    getUserStats,
+    getUsersForDropdown,
+    toggleUserActiveStatus
 };

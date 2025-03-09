@@ -87,6 +87,31 @@ const rules = {
         .withMessage('New password must be at least 6 characters long')
     ],
 
+    createUser: [
+        body('name')
+        .optional()
+        .isLength({
+            min: 2
+        })
+        .withMessage('Name must be at least 2 characters long'),
+        body('email')
+        .isEmail()
+        .withMessage('Please provide a valid email'),
+        body('password')
+        .isLength({
+            min: 6
+        })
+        .withMessage('Password must be at least 6 characters long'),
+        body('role')
+        .optional()
+        .isIn(['ADMIN', 'STAFF', 'USER'])
+        .withMessage('Invalid role'),
+        body('isActive')
+        .optional()
+        .isBoolean()
+        .withMessage('isActive must be a boolean')
+    ],
+
     updateUser: [
         body('name')
         .optional()
@@ -97,7 +122,23 @@ const rules = {
         body('email')
         .optional()
         .isEmail()
-        .withMessage('Please provide a valid email')
+        .withMessage('Please provide a valid email'),
+        body('role')
+        .optional()
+        .isIn(['ADMIN', 'STAFF', 'USER'])
+        .withMessage('Invalid role'),
+        body('isActive')
+        .optional()
+        .isBoolean()
+        .withMessage('isActive must be a boolean')
+    ],
+
+    toggleUserStatus: [
+        body('isActive')
+        .notEmpty()
+        .withMessage('isActive status is required')
+        .isBoolean()
+        .withMessage('isActive must be a boolean')
     ],
 
     // Device
