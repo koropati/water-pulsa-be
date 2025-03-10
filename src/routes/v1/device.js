@@ -8,7 +8,7 @@ const {
 } = require('../../controllers/deviceIoTController');
 const {
     validateApiKey
-} = require('../../middleware/auth');
+} = require('../../middleware/apiKey');
 const {
     validate,
     rules

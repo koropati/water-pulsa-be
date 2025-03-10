@@ -13,6 +13,8 @@ const {
     logger
 } = require('../utils/logger');
 
+const { buildOwnershipFilter, enforceOwnership } = require('../utils/authorization');
+
 /**
  * Get all devices with pagination and filtering
  * @param {Object} options - Query options (pagination, filters)
@@ -26,13 +28,8 @@ const getAllDevices = async (options, userId, userRole) => {
     } = options;
     const skip = (page - 1) * limit;
 
-    // Build where clause
-    const where = {};
-
-    // Filter by user for non-admin roles
-    if (userRole !== ROLES.ADMIN) {
-        where.userId = userId;
-    }
+    // Build where clause with ownership filter
+    const where = buildOwnershipFilter(userId, userRole);
 
     // Filter by device status if provided
     if (status !== undefined) {
@@ -48,9 +45,7 @@ const getAllDevices = async (options, userId, userRole) => {
     }
 
     // Count total devices
-    const total = await prisma.device.count({
-        where
-    });
+    const total = await prisma.device.count({ where });
 
     // Get devices with pagination
     const devices = await prisma.device.findMany({
@@ -97,15 +92,8 @@ const getAllDevices = async (options, userId, userRole) => {
  * @returns {Object} Device object
  */
 const getDeviceById = async (deviceId, userId, userRole) => {
-    // Build where clause
-    const where = {
-        id: deviceId
-    };
-
-    // Non-admin users can only see their own devices
-    if (userRole !== ROLES.ADMIN) {
-        where.userId = userId;
-    }
+    // Build where clause with ownership filter
+    const where = buildOwnershipFilter(userId, userRole, { id: deviceId });
 
     // Find device
     const device = await prisma.device.findFirst({
@@ -129,7 +117,7 @@ const getDeviceById = async (deviceId, userId, userRole) => {
     });
 
     if (!device) {
-        throw new ApiError('Device not found', STATUS_CODES.NOT_FOUND);
+        throw new ApiError('Device not found or you do not have permission', STATUS_CODES.NOT_FOUND);
     }
 
     return device;
@@ -198,29 +186,15 @@ const createDevice = async (deviceData, creatorId, creatorRole) => {
  * @returns {Object} Updated device
  */
 const updateDevice = async (deviceId, updateData, userId, userRole) => {
-    const {
-        deviceKey,
-        status
-    } = updateData;
+    const { deviceKey, status } = updateData;
 
-    // Build where clause
-    const where = {
-        id: deviceId
-    };
-
-    // Non-admin users can only update their own devices
-    if (userRole !== ROLES.ADMIN) {
-        where.userId = userId;
-    }
-
-    // Check if device exists
-    const device = await prisma.device.findFirst({
-        where
+    // Get the device first to check ownership
+    const device = await prisma.device.findUnique({
+        where: { id: deviceId }
     });
 
-    if (!device) {
-        throw new ApiError('Device not found or you do not have permission', STATUS_CODES.NOT_FOUND);
-    }
+    // Check if device exists and user has permission to update it
+    enforceOwnership(device, userId, userRole, null, 'Device');
 
     // Check if deviceKey is already in use
     if (deviceKey && deviceKey !== device.deviceKey) {
@@ -272,24 +246,13 @@ const updateDevice = async (deviceId, updateData, userId, userRole) => {
  * @returns {Boolean} Success status
  */
 const deleteDevice = async (deviceId, userId, userRole) => {
-    // Build where clause
-    const where = {
-        id: deviceId
-    };
-
-    // Non-admin users can only delete their own devices
-    if (userRole !== ROLES.ADMIN) {
-        where.userId = userId;
-    }
-
-    // Check if device exists
-    const device = await prisma.device.findFirst({
-        where
+    // Get the device first to check ownership
+    const device = await prisma.device.findUnique({
+        where: { id: deviceId }
     });
 
-    if (!device) {
-        throw new ApiError('Device not found or you do not have permission', STATUS_CODES.NOT_FOUND);
-    }
+    // Check if device exists and user has permission to delete it
+    enforceOwnership(device, userId, userRole, null, 'Device');
 
     // Delete device
     await prisma.device.delete({

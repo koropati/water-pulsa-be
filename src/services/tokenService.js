@@ -16,6 +16,7 @@ const {
 const {
     logger
 } = require('../utils/logger');
+const { buildOwnershipFilter, enforceOwnership, isAdmin } = require('../utils/authorization');
 
 /**
  * Get all tokens with pagination and filtering
@@ -30,8 +31,8 @@ const getAllTokens = async (options, userId, userRole) => {
     } = options;
     const skip = (page - 1) * limit;
 
-    // Build where clause
-    const where = {};
+    // Build where clause with ownership filter
+    const where = buildOwnershipFilter(userId, userRole, {}, 'device.userId');
 
     // Filter by device if specified
     if (deviceId) {
@@ -41,13 +42,6 @@ const getAllTokens = async (options, userId, userRole) => {
     // Filter by status if specified
     if (status && Object.values(TOKEN_STATUS).includes(status)) {
         where.status = status;
-    }
-
-    // Non-admin users can only see their own tokens
-    if (userRole !== ROLES.ADMIN) {
-        where.device = {
-            userId
-        };
     }
 
     // Count total tokens
@@ -98,21 +92,43 @@ const getAllTokens = async (options, userId, userRole) => {
  * @returns {Object} Token object
  */
 const getTokenById = async (tokenId, userId, userRole) => {
-    // Build where clause
-    const where = {
-        id: tokenId
-    };
-
-    // Non-admin users can only see their own tokens
-    if (userRole !== ROLES.ADMIN) {
-        where.device = {
-            userId
-        };
+    // For admin users, we can skip the join for better performance
+    if (isAdmin(userRole)) {
+        const token = await prisma.token.findUnique({
+            where: { id: tokenId },
+            include: {
+                device: {
+                    select: {
+                        id: true,
+                        deviceKey: true,
+                        userId: true,
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        if (!token) {
+            throw new ApiError('Token not found', STATUS_CODES.NOT_FOUND);
+        }
+        
+        return token;
     }
-
-    // Find token
+    
+    // For non-admin users, verify ownership through the device relationship
     const token = await prisma.token.findFirst({
-        where,
+        where: {
+            id: tokenId,
+            device: {
+                userId
+            }
+        },
         include: {
             device: {
                 select: {
@@ -132,7 +148,7 @@ const getTokenById = async (tokenId, userId, userRole) => {
     });
 
     if (!token) {
-        throw new ApiError('Token not found', STATUS_CODES.NOT_FOUND);
+        throw new ApiError('Token not found or you do not have permission', STATUS_CODES.NOT_FOUND);
     }
 
     return token;
@@ -223,18 +239,16 @@ const createToken = async (tokenData, userId, userRole) => {
     } = tokenData;
 
     // Verify device exists and user has access
-    const device = await prisma.device.findFirst({
-        where: {
-            id: deviceId,
-            ...(userRole !== ROLES.ADMIN ? {
-                userId
-            } : {})
-        }
+    const device = await prisma.device.findUnique({
+        where: { id: deviceId }
     });
-
+    
     if (!device) {
-        throw new ApiError('Device not found or you do not have access', STATUS_CODES.NOT_FOUND);
+        throw new ApiError('Device not found', STATUS_CODES.NOT_FOUND);
     }
+    
+    // Check ownership
+    enforceOwnership(device, userId, userRole, null, 'Device');
 
     // Generate unique token
     const tokenValue = generateDeviceToken();

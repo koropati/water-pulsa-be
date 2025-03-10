@@ -22,6 +22,7 @@ model User {
     devices Device[]
     apiKeys ApiKey[]
     profile Profile?
+    securityLogs SecurityAuditLog[]
 
     @@index([email])
     @@map("users")
@@ -146,4 +147,24 @@ model ApiKeyUsage {
     @@index([ipAddress])
     @@index([timestamp])
     @@map("api_key_usages")
+}
+
+model SecurityAuditLog {
+    id          String   @id @default(cuid())
+    eventType   String   // Type of security event (auth_success, access_denied, etc.)
+    userId      String?  // User who performed the action (if applicable)
+    user        User?    @relation(fields: [userId], references: [id])
+    resourceType String? // Type of resource (device, token, etc.)
+    resourceId  String?  // ID of the resource
+    action      String?  // Action performed (read, update, delete, etc.)
+    ipAddress   String?  // IP address
+    userAgent   String?  // Browser info
+    metadata    Json?    // Additional metadata
+    timestamp   DateTime @default(now())
+
+    @@index([userId])
+    @@index([eventType])
+    @@index([resourceType])
+    @@index([timestamp])
+    @@map("security_audit_logs")
 }

@@ -14,9 +14,6 @@ const {
 const {
     logger
 } = require('../utils/logger');
-const {
-    ROLES
-} = require('../../config/constants');
 
 /**
  * @swagger
@@ -324,10 +321,6 @@ const getUserStats = async (req, res, next) => {
  */
 const getUsersForDropdown = async (req, res, next) => {
     try {
-        // Check if user is SUPER_ADMIN
-        if (req.user.role !== ROLES.SUPER_ADMIN) {
-            return error(res, STATUS_CODES.FORBIDDEN, 'Unauthorized - requires SUPER_ADMIN role');
-        }
 
         const options = {
             ...getPaginationParams(req),
@@ -400,21 +393,23 @@ const getUsersForDropdown = async (req, res, next) => {
  */
 const toggleUserActiveStatus = async (req, res, next) => {
     try {
-        const { isActive } = req.body;
-        
+        const {
+            isActive
+        } = req.body;
+
         if (typeof isActive !== 'boolean') {
             return error(res, STATUS_CODES.BAD_REQUEST, 'isActive must be a boolean value');
         }
-        
+
         const updatedUser = await userService.toggleUserActiveStatus(
             req.params.id,
             isActive
         );
-        
+
         return success(
-            res, 
-            STATUS_CODES.SUCCESS, 
-            `User ${isActive ? 'activated' : 'deactivated'} successfully`, 
+            res,
+            STATUS_CODES.SUCCESS,
+            `User ${isActive ? 'activated' : 'deactivated'} successfully`,
             updatedUser
         );
     } catch (err) {
