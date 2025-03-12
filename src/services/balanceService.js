@@ -30,7 +30,7 @@ const getAllBalances = async (options, userId, userRole) => {
     const where = {};
 
     // Non-admin users can only see their own balances
-    if (userRole !== ROLES.ADMIN) {
+    if (userRole === ROLES.STAFF || userRole === ROLES.USER) {
         where.device = {
             userId
         };
@@ -100,7 +100,7 @@ const getBalanceByDevice = async (deviceId, userId, userRole) => {
     const device = await prisma.device.findFirst({
         where: {
             id: deviceId,
-            ...(userRole !== ROLES.ADMIN ? {
+            ...(userRole !== ROLES.ADMIN  || userRole !== ROLES.SUPER_ADMIN ? {
                 userId
             } : {})
         }
@@ -190,7 +190,7 @@ const updateBalance = async (deviceId, amount, userId, userRole) => {
     const device = await prisma.device.findFirst({
         where: {
             id: deviceId,
-            ...(userRole !== ROLES.ADMIN ? {
+            ...(userRole === ROLES.STAFF || userRole === ROLES.USER ? {
                 userId
             } : {})
         }
@@ -247,7 +247,7 @@ const getBalanceStats = async (userId, userRole) => {
     const where = {};
 
     // Non-admin users can only see their own balances
-    if (userRole !== ROLES.ADMIN) {
+    if (userRole === ROLES.STAFF || userRole === ROLES.USER) {
         where.device = {
             userId
         };
@@ -265,7 +265,7 @@ const getBalanceStats = async (userId, userRole) => {
 
     // Get device count
     const totalDevices = await prisma.device.count({
-        where: userRole !== ROLES.ADMIN ? {
+        where: userRole === ROLES.STAFF || userRole === ROLES.USER ? {
             userId
         } : {}
     });
@@ -289,7 +289,7 @@ const getBalanceStats = async (userId, userRole) => {
             timeStamp: {
                 gte: thirtyDaysAgo
             },
-            ...(userRole !== ROLES.ADMIN ? {
+            ...(userRole === ROLES.STAFF || userRole === ROLES.USER ? {
                 device: {
                     userId
                 }

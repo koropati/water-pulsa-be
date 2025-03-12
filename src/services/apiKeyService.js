@@ -33,7 +33,7 @@ const getAllApiKeys = async (options, userId, userRole) => {
     const where = {};
 
     // Non-admin users can only see their own API keys
-    if (userRole !== ROLES.ADMIN) {
+    if (userRole === ROLES.STAFF || userRole === ROLES.USER) {
         where.userId = userId;
     }
 
@@ -96,7 +96,7 @@ const getApiKeyById = async (apiKeyId, userId, userRole) => {
     };
 
     // Non-admin users can only see their own API keys
-    if (userRole !== ROLES.ADMIN) {
+    if (userRole === ROLES.STAFF || userRole === ROLES.USER) {
         where.userId = userId;
     }
 
@@ -141,7 +141,7 @@ const createApiKey = async (apiKeyData, creatorId, creatorRole) => {
     } = apiKeyData;
 
     // Determine the owner of the API key
-    const ownerId = (userId && creatorRole === ROLES.ADMIN) ? userId : creatorId;
+    const ownerId = (userId && creatorRole === ROLES.ADMIN || creatorRole === ROLES.SUPER_ADMIN) ? userId : creatorId;
 
     // Generate API key
     const apiKeyValue = generateApiKey();
@@ -198,7 +198,7 @@ const updateApiKey = async (apiKeyId, updateData, userId, userRole) => {
     };
 
     // Non-admin users can only update their own API keys
-    if (userRole !== ROLES.ADMIN) {
+    if (userRole === ROLES.STAFF || userRole === ROLES.USER) {
         where.userId = userId;
     }
 
@@ -264,7 +264,7 @@ const deleteApiKey = async (apiKeyId, userId, userRole) => {
     };
 
     // Non-admin users can only delete their own API keys
-    if (userRole !== ROLES.ADMIN) {
+    if (userRole === ROLES.STAFF || userRole === ROLES.USER) {
         where.userId = userId;
     }
 
@@ -305,7 +305,7 @@ const getApiKeyUsage = async (apiKeyId, options, userId, userRole) => {
     const apiKey = await prisma.apiKey.findFirst({
         where: {
             id: apiKeyId,
-            ...(userRole !== ROLES.ADMIN ? {
+            ...(userRole === ROLES.STAFF || userRole === ROLES.USER ? {
                 userId
             } : {})
         }
@@ -356,7 +356,7 @@ const getApiKeyStats = async (userId, userRole) => {
     const where = {};
 
     // Non-admin users can only see their own API keys
-    if (userRole !== ROLES.ADMIN) {
+    if (userRole === ROLES.STAFF || userRole === ROLES.USER) {
         where.userId = userId;
     }
 

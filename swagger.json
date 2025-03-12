@@ -333,6 +333,52 @@
             "description": "Server error"
           }
         }
+      },
+      "patch": {
+        "summary": "Partially update user profile",
+        "tags": [
+          "User Profile"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "User's name"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "User's email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User profile partially updated successfully"
+          },
+          "400": {
+            "description": "Validation error, email in use, or no fields to update"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
       }
     },
     "/user-profile/change-password": {
@@ -638,6 +684,73 @@
           },
           "403": {
             "description": "Forbidden"
+          },
+          "404": {
+            "description": "API key not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Partially update an API key",
+        "tags": [
+          "API Keys"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "API key name/description"
+                  },
+                  "status": {
+                    "type": "boolean",
+                    "description": "API key status (active/inactive)"
+                  },
+                  "expiresAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Expiration date (ISO 8601 format) or null to remove expiration"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "API key partially updated successfully"
+          },
+          "400": {
+            "description": "Validation error or no fields to update"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - no permission to update this API key"
           },
           "404": {
             "description": "API key not found"
@@ -1114,6 +1227,71 @@
         }
       }
     },
+    "/balances/{deviceId}": {
+      "patch": {
+        "summary": "Partially update device balance",
+        "tags": [
+          "Balances"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deviceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Device ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "number",
+                    "format": "float",
+                    "description": "Amount to add (positive) or subtract (negative)"
+                  },
+                  "lastToken": {
+                    "type": "string",
+                    "description": "Last token used (optional)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Balance partially updated successfully"
+          },
+          "400": {
+            "description": "Validation error or no fields to update"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - no permission to update this balance"
+          },
+          "404": {
+            "description": "Device or balance not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
     "/balances/stats": {
       "get": {
         "summary": "Get balance statistics",
@@ -1339,6 +1517,71 @@
           },
           "403": {
             "description": "Forbidden"
+          },
+          "404": {
+            "description": "Device not found"
+          },
+          "409": {
+            "description": "Device key already exists"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Partially update a device",
+        "tags": [
+          "Devices"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Device ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "deviceKey": {
+                    "type": "string",
+                    "description": "Device key"
+                  },
+                  "status": {
+                    "type": "boolean",
+                    "description": "Device status (active/inactive)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Device partially updated successfully"
+          },
+          "400": {
+            "description": "Validation error or no fields to update"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - no permission to update this device"
           },
           "404": {
             "description": "Device not found"
@@ -1584,6 +1827,58 @@
           },
           "401": {
             "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Partially update user profile data",
+        "tags": [
+          "Profiles"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phoneNumber": {
+                    "type": "string",
+                    "description": "User's phone number"
+                  },
+                  "address": {
+                    "type": "string",
+                    "description": "User's address"
+                  },
+                  "avatar": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "User's profile picture"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile partially updated successfully"
+          },
+          "400": {
+            "description": "Validation error or no fields to update"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Profile not found"
           },
           "500": {
             "description": "Server error"
@@ -2461,6 +2756,85 @@
           },
           "403": {
             "description": "Forbidden"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "409": {
+            "description": "Email already exists"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Partially update a user",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "User's name"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "User's email"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "ADMIN",
+                      "STAFF",
+                      "USER"
+                    ],
+                    "description": "User role (admin only)"
+                  },
+                  "isActive": {
+                    "type": "boolean",
+                    "description": "User active status (admin only)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User partially updated successfully"
+          },
+          "400": {
+            "description": "Validation error or no fields to update"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - requires admin role"
           },
           "404": {
             "description": "User not found"

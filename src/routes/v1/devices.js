@@ -5,6 +5,7 @@ const {
     getDeviceById,
     createDevice,
     updateDevice,
+    updateDevicePartial,
     deleteDevice,
     getDevicesForDropdown,
     getDeviceStats,
@@ -51,6 +52,8 @@ router.post('/', validate(rules.createDevice), createDevice);
 
 // Update a device
 router.put('/:id', validate(rules.updateDevice), updateDevice);
+
+router.patch('/:id', validate(rules.updateDevicePartial), updateDevicePartial);
 
 // Delete a device
 router.delete('/:id', deleteDevice);

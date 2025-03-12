@@ -17,8 +17,21 @@ const generateRandomToken = (length = 32) => {
  * Generate unique device token
  * @returns {String} - Device token
  */
-const generateDeviceToken = () => {
-    return `dt_${crypto.randomBytes(16).toString('hex')}`;
+const generateDeviceToken = (length = 16) => {
+    const characters = '1234567890';
+    let result = '';
+    const charactersLength = characters.length;
+
+    // Ensure at least one number
+    result += characters.charAt(52 + Math.floor(Math.random() * 10)); // 0-9
+
+    // Fill the rest randomly
+    for (let i = 3; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+
+    // Shuffle the result
+    return result.split('').sort(() => Math.random() - 0.5).join('');
 };
 
 /**

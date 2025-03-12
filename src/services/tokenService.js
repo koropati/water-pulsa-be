@@ -25,24 +25,38 @@ const { buildOwnershipFilter, enforceOwnership, isAdmin } = require('../utils/au
  * @param {String} userRole - User role
  * @returns {Object} Tokens and pagination metadata
  */
+// In tokenService.js, update the getAllTokens function:
+
 const getAllTokens = async (options, userId, userRole) => {
     const {
         page = 1, limit = 10, deviceId, status
     } = options;
     const skip = (page - 1) * limit;
 
-    // Build where clause with ownership filter
-    const where = buildOwnershipFilter(userId, userRole, {}, 'device.userId');
+    // Start with an empty where clause
+    let where = {};
+    
+    // For non-admin users, filter by ownership
+    if (!isAdmin(userRole)) {
+        where.device = {
+            userId: userId
+        };
+    }
 
     // Filter by device if specified
-    if (deviceId) {
-        where.deviceId = deviceId;
+    if (deviceId && deviceId.trim()) {
+        // Make sure we're using a clean string
+        where.deviceId = deviceId.trim();
+        console.log('Applying deviceId filter:', where.deviceId);
     }
 
     // Filter by status if specified
     if (status && Object.values(TOKEN_STATUS).includes(status)) {
         where.status = status;
     }
+
+    // Log the where clause for debugging
+    console.log('Final where clause for tokens query:', JSON.stringify(where));
 
     // Count total tokens
     const total = await prisma.token.count({
@@ -72,6 +86,8 @@ const getAllTokens = async (options, userId, userRole) => {
             createdAt: 'desc'
         }
     });
+
+    console.log(`Found ${tokens.length} tokens`);
 
     return {
         tokens,
@@ -179,7 +195,7 @@ const getTokensByDevice = async (deviceId, options, userId, userRole) => {
     }
 
     // Non-admin users can only see their own tokens
-    if (userRole !== ROLES.ADMIN) {
+    if (userRole === ROLES.STAFF || userRole === ROLES.USER) {
         where.device = {
             userId
         };
@@ -189,7 +205,7 @@ const getTokensByDevice = async (deviceId, options, userId, userRole) => {
     const device = await prisma.device.findFirst({
         where: {
             id: deviceId,
-            ...(userRole !== ROLES.ADMIN ? {
+            ...(userRole === ROLES.STAFF || userRole === ROLES.USER ? {
                 userId
             } : {})
         }
@@ -372,7 +388,7 @@ const getTokenStats = async (userId, userRole) => {
     const where = {};
 
     // Non-admin users can only see their own tokens
-    if (userRole !== ROLES.ADMIN) {
+    if (userRole === ROLES.STAFF || userRole === ROLES.USER) {
         where.device = {
             userId
         };

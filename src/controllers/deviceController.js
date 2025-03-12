@@ -233,6 +233,81 @@ const updateDevice = async (req, res, next) => {
 /**
  * @swagger
  * /devices/{id}:
+ *   patch:
+ *     summary: Partially update a device
+ *     tags: [Devices]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Device ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               deviceKey:
+ *                 type: string
+ *                 description: Device key
+ *               status:
+ *                 type: boolean
+ *                 description: Device status (active/inactive)
+ *     responses:
+ *       200:
+ *         description: Device partially updated successfully
+ *       400:
+ *         description: Validation error or no fields to update
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - no permission to update this device
+ *       404:
+ *         description: Device not found
+ *       409:
+ *         description: Device key already exists
+ *       500:
+ *         description: Server error
+ */
+const updateDevicePartial = async (req, res, next) => {
+    try {
+        // Only update fields that are explicitly sent in the request
+        const updateData = {};
+        const allowedFields = ['deviceKey', 'status'];
+
+        allowedFields.forEach(field => {
+            if (req.body[field] !== undefined) {
+                updateData[field] = req.body[field];
+            }
+        });
+
+        // Don't proceed if no fields to update
+        if (Object.keys(updateData).length === 0) {
+            return error(res, STATUS_CODES.BAD_REQUEST, 'No valid fields to update provided');
+        }
+
+        const updatedDevice = await deviceService.updateDevice(
+            req.params.id,
+            updateData,
+            req.user.id,
+            req.user.role
+        );
+
+        return success(res, STATUS_CODES.SUCCESS, 'Device partially updated successfully', updatedDevice);
+    } catch (err) {
+        logger.error(`Error updating device partially: ${err.message}`);
+        return next(err);
+    }
+};
+
+/**
+ * @swagger
+ * /devices/{id}:
  *   delete:
  *     summary: Delete a device
  *     tags: [Devices]
@@ -413,6 +488,7 @@ module.exports = {
     getDeviceById,
     createDevice,
     updateDevice,
+    updateDevicePartial,
     deleteDevice,
     getDevicesForDropdown,
     getDeviceStats,

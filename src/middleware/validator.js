@@ -261,9 +261,7 @@ const rules = {
         body('usageAmount')
         .notEmpty()
         .withMessage('Usage amount is required')
-        .isFloat({
-            min: 0.01
-        })
+        .isFloat()
         .withMessage('Usage amount must be a positive number')
     ],
 
@@ -327,6 +325,100 @@ const rules = {
             min: 6
         })
         .withMessage('New password must be at least 6 characters')
+    ],
+
+    // User partial update
+    updateUserPartial: [
+        body('name')
+        .optional()
+        .isLength({
+            min: 2
+        })
+        .withMessage('Name must be at least 2 characters long'),
+        body('email')
+        .optional()
+        .isEmail()
+        .withMessage('Please provide a valid email'),
+        body('role')
+        .optional()
+        .isIn(['ADMIN', 'STAFF', 'USER'])
+        .withMessage('Invalid role'),
+        body('isActive')
+        .optional()
+        .isBoolean()
+        .withMessage('isActive must be a boolean')
+    ],
+
+    // Device partial update
+    updateDevicePartial: [
+        body('status')
+        .optional()
+        .isBoolean()
+        .withMessage('Status must be a boolean'),
+        body('deviceKey')
+        .optional()
+        .isLength({
+            min: 3
+        })
+        .withMessage('Device key must be at least 3 characters long')
+    ],
+
+    // API Key partial update
+    updateApiKeyPartial: [
+        body('name')
+        .optional()
+        .isLength({
+            min: 3
+        })
+        .withMessage('Name must be at least 3 characters long'),
+        body('status')
+        .optional()
+        .isBoolean()
+        .withMessage('Status must be a boolean'),
+        body('expiresAt')
+        .optional()
+        .isISO8601()
+        .withMessage('Expiration date must be a valid ISO 8601 date')
+    ],
+
+    // User Profile partial update
+    updateUserProfilePartial: [
+        body('name')
+        .optional()
+        .isString()
+        .withMessage('Name must be a string')
+        .isLength({
+            min: 2
+        })
+        .withMessage('Name must be at least 2 characters'),
+        body('email')
+        .optional()
+        .isEmail()
+        .withMessage('Please provide a valid email')
+    ],
+
+    // Profile partial update
+    updateProfilePartial: [
+        body('phoneNumber')
+        .optional()
+        .isMobilePhone()
+        .withMessage('Please provide a valid phone number'),
+        body('address')
+        .optional()
+        .isString()
+        .withMessage('Address must be a string')
+    ],
+
+    // Balance partial update
+    updateBalancePartial: [
+        body('amount')
+        .optional()
+        .isFloat()
+        .withMessage('Amount must be a valid number'),
+        body('lastToken')
+        .optional()
+        .isString()
+        .withMessage('Last token must be a string')
     ],
 
     // Common ID parameter

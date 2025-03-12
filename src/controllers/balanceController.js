@@ -245,6 +245,85 @@ const updateBalance = async (req, res, next) => {
 
 /**
  * @swagger
+ * /balances/{deviceId}:
+ *   patch:
+ *     summary: Partially update device balance
+ *     tags: [Balances]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: deviceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Device ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               amount:
+ *                 type: number
+ *                 format: float
+ *                 description: Amount to add (positive) or subtract (negative)
+ *               lastToken:
+ *                 type: string
+ *                 description: Last token used (optional)
+ *     responses:
+ *       200:
+ *         description: Balance partially updated successfully
+ *       400:
+ *         description: Validation error or no fields to update
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - no permission to update this balance
+ *       404:
+ *         description: Device or balance not found
+ *       500:
+ *         description: Server error
+ */
+const updateBalancePartial = async (req, res, next) => {
+    try {
+        const deviceId = req.params.deviceId;
+        const updateData = {};
+
+        // Only process fields that are explicitly sent
+        if (req.body.amount !== undefined) {
+            if (isNaN(parseFloat(req.body.amount))) {
+                return error(res, STATUS_CODES.BAD_REQUEST, 'Amount must be a number');
+            }
+            updateData.amount = parseFloat(req.body.amount);
+        }
+
+        if (req.body.lastToken !== undefined) {
+            updateData.lastToken = req.body.lastToken;
+        }
+
+        // Don't proceed if no fields to update
+        if (Object.keys(updateData).length === 0) {
+            return error(res, STATUS_CODES.BAD_REQUEST, 'No valid fields to update provided');
+        }
+
+        const balance = await balanceService.updateBalancePartial(
+            deviceId,
+            updateData,
+            req.user.id,
+            req.user.role
+        );
+
+        return success(res, STATUS_CODES.SUCCESS, 'Balance partially updated successfully', balance);
+    } catch (err) {
+        logger.error(`Error partially updating balance: ${err.message}`);
+        return next(err);
+    }
+};
+
+/**
+ * @swagger
  * /balances/stats:
  *   get:
  *     summary: Get balance statistics
@@ -277,5 +356,6 @@ module.exports = {
     getBalanceByDevice,
     checkDeviceBalance,
     updateBalance,
+    updateBalancePartial,
     getBalanceStats
 };

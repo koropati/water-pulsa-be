@@ -30,10 +30,18 @@ const getAllUsers = async (options, userRole) => {
     const where = {};
 
     // Admin can see all users, others can only see themselves and users they created
-    if (userRole !== ROLES.ADMIN) {
-        where.role = {
-            not: ROLES.ADMIN
-        };
+    if (userRole === ROLES.STAFF || userRole === ROLES.USER) {
+        where.OR = [{
+                role: {
+                    not: ROLES.ADMIN
+                }
+            },
+            {
+                role: {
+                    not: ROLES.SUPER_ADMIN
+                }
+            }
+        ];
     }
 
     // Filter by isActive if provided
@@ -214,12 +222,12 @@ const updateUser = async (userId, updateData, currentUserRole) => {
     }
 
     // Check permissions (only admins can change roles)
-    if (role && currentUserRole !== ROLES.ADMIN) {
+    if (role && currentUserRole !== ROLES.ADMIN || currentUserRole !== ROLES.SUPER_ADMIN) {
         throw new ApiError('You do not have permission to change roles', STATUS_CODES.FORBIDDEN);
     }
 
     // Check permissions (only admins can change isActive)
-    if (isActive !== undefined && currentUserRole !== ROLES.ADMIN) {
+    if (isActive !== undefined && currentUserRole !== ROLES.ADMIN || currentUserRole !== ROLES.SUPER_ADMIN) {
         throw new ApiError('You do not have permission to change account status', STATUS_CODES.FORBIDDEN);
     }
 
@@ -243,8 +251,8 @@ const updateUser = async (userId, updateData, currentUserRole) => {
     const data = {};
     if (name) data.name = name;
     if (email) data.email = email;
-    if (role && currentUserRole === ROLES.ADMIN) data.role = role;
-    if (isActive !== undefined && currentUserRole === ROLES.ADMIN) data.isActive = isActive;
+    if (role && currentUserRole === ROLES.ADMIN || currentUserRole === ROLES.SUPER_ADMIN) data.role = role;
+    if (isActive !== undefined && currentUserRole === ROLES.ADMIN || currentUserRole === ROLES.SUPER_ADMIN) data.isActive = isActive;
 
     // Update user
     const updatedUser = await prisma.user.update({
@@ -342,10 +350,18 @@ const getUserStats = async (role) => {
     const where = {};
 
     // Non-admins can't see admin stats
-    if (role !== ROLES.ADMIN) {
-        where.role = {
-            not: ROLES.ADMIN
-        };
+    if (role !== ROLES.ADMIN || role !== ROLES.SUPER_ADMIN) {
+        where.OR = [{
+                role: {
+                    not: ROLES.ADMIN
+                }
+            },
+            {
+                role: {
+                    not: ROLES.SUPER_ADMIN
+                }
+            }
+        ];
     }
 
     // Get total counts

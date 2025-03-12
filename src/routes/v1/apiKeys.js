@@ -5,6 +5,7 @@ const {
     getApiKeyById,
     createApiKey,
     updateApiKey,
+    updateApiKeyPartial,
     deleteApiKey,
     getApiKeyUsage,
     getApiKeyStats
@@ -46,6 +47,8 @@ router.post('/', validate(rules.createApiKey), createApiKey);
 
 // Update an API key
 router.put('/:id', validate(rules.updateApiKey), updateApiKey);
+
+router.patch('/:id', validate(rules.updateApiKeyPartial), updateApiKey);
 
 // Delete an API key
 router.delete('/:id', deleteApiKey);

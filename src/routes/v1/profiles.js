@@ -3,6 +3,7 @@ const express = require('express');
 const {
     getCurrentProfile,
     updateProfile,
+    updateProfilePartial,
     getProfileAvatar,
     deleteProfileAvatar,
     deleteProfile,
@@ -40,6 +41,8 @@ router.get('/', getCurrentProfile);
 
 // Update user profile (with file upload)
 router.put('/', uploadAvatar, updateProfile);
+
+router.patch('/',validate(rules.updateProfilePartial), uploadAvatar, updateProfilePartial);
 
 // Get user avatar
 router.get('/avatar', getProfileAvatar);

@@ -5,6 +5,7 @@ const {
     getBalanceByDevice,
     checkDeviceBalance,
     updateBalance,
+    updateBalancePartial,
     getBalanceStats
 } = require('../../controllers/balanceController');
 const {
@@ -42,5 +43,7 @@ router.get('/device/:deviceId', getBalanceByDevice);
 
 // Update balance
 router.post('/update', validate(rules.updateBalance), updateBalance);
+
+router.patch('/update', validate(rules.updateBalancePartial), updateBalancePartial);
 
 module.exports = router;

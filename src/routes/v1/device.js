@@ -7,9 +7,6 @@ const {
     validateDeviceToken
 } = require('../../controllers/deviceIoTController');
 const {
-    validateApiKey
-} = require('../../middleware/apiKey');
-const {
     validate,
     rules
 } = require('../../middleware/validator');
@@ -52,7 +49,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.post('/auth', validateApiKey, validate(rules.authenticateDevice), authenticateDevice);
+router.post('/auth', validate(rules.authenticateDevice), authenticateDevice);
 
 /**
  * @swagger
@@ -85,7 +82,7 @@ router.post('/auth', validateApiKey, validate(rules.authenticateDevice), authent
  *       500:
  *         description: Server error
  */
-router.post('/balance', validateApiKey, validate(rules.checkDeviceBalance), checkDeviceBalance);
+router.post('/balance', validate(rules.checkDeviceBalance), checkDeviceBalance);
 
 /**
  * @swagger
@@ -124,7 +121,7 @@ router.post('/balance', validateApiKey, validate(rules.checkDeviceBalance), chec
  *       500:
  *         description: Server error
  */
-router.post('/usage', validateApiKey, validate(rules.logDeviceUsage), logDeviceUsage);
+router.post('/usage', validate(rules.logDeviceUsage), logDeviceUsage);
 
 /**
  * @swagger
@@ -160,6 +157,6 @@ router.post('/usage', validateApiKey, validate(rules.logDeviceUsage), logDeviceU
  *       500:
  *         description: Server error
  */
-router.post('/token/validate', validateApiKey, validate(rules.validateDeviceToken), validateDeviceToken);
+router.post('/token/validate', validate(rules.validateDeviceToken), validateDeviceToken);
 
 module.exports = router;

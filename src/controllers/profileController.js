@@ -94,6 +94,70 @@ const updateProfile = async (req, res, next) => {
 
 /**
  * @swagger
+ * /profiles:
+ *   patch:
+ *     summary: Partially update user profile data
+ *     tags: [Profiles]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               phoneNumber:
+ *                 type: string
+ *                 description: User's phone number
+ *               address:
+ *                 type: string
+ *                 description: User's address
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *                 description: User's profile picture
+ *     responses:
+ *       200:
+ *         description: Profile partially updated successfully
+ *       400:
+ *         description: Validation error or no fields to update
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Profile not found
+ *       500:
+ *         description: Server error
+ */
+const updateProfilePartial = async (req, res, next) => {
+    try {
+        const profileData = {};
+
+        // Only update fields that are explicitly sent in the request
+        if (req.body.phoneNumber !== undefined) profileData.phoneNumber = req.body.phoneNumber;
+        if (req.body.address !== undefined) profileData.address = req.body.address;
+
+        const fileData = req.file;
+
+        // Don't proceed if no fields to update and no file
+        if (Object.keys(profileData).length === 0 && !fileData) {
+            return error(res, STATUS_CODES.BAD_REQUEST, 'No valid fields to update provided');
+        }
+
+        const profile = await profileService.updateProfile(
+            req.user.id,
+            profileData,
+            fileData
+        );
+
+        return success(res, STATUS_CODES.SUCCESS, 'Profile partially updated successfully', profile);
+    } catch (err) {
+        logger.error(`Error partially updating profile: ${err.message}`);
+        return next(err);
+    }
+};
+
+/**
+ * @swagger
  * /profiles/avatar:
  *   get:
  *     summary: Get user avatar
@@ -215,6 +279,7 @@ const getProfileById = async (req, res, next) => {
 module.exports = {
     getCurrentProfile,
     updateProfile,
+    updateProfilePartial,
     getProfileAvatar,
     deleteProfileAvatar,
     deleteProfile,

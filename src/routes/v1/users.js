@@ -5,6 +5,7 @@ const {
     getUserById,
     createUser,
     updateUser,
+    updateUserPartial,
     deleteUser,
     getUserStats,
     getUsersForDropdown,
@@ -51,6 +52,8 @@ router.post('/', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), validate(rules.crea
 
 // Update a user (admin only)
 router.put('/:id', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), validate(rules.updateUser), updateUser);
+
+router.patch('/:id', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), validate(rules.updateUserPartial), updateUserPartial);
 
 // Delete a user (admin only)
 router.delete('/:id', restrictTo(ROLES.SUPER_ADMIN, ROLES.ADMIN), deleteUser);

@@ -3,6 +3,7 @@ const express = require('express');
 const {
     getCurrentUser,
     updateUserProfile,
+    updateUserProfilePartial,
     deleteUserAccount,
     changePassword,
     updateUserSettings
@@ -76,6 +77,8 @@ router.get('/', getCurrentUser);
  *         description: Server error
  */
 router.put('/', validate(rules.updateUser), updateUserProfile);
+
+router.patch('/', validate(rules.updateUserProfilePartial), updateUserProfilePartial);
 
 /**
  * @swagger

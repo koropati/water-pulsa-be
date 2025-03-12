@@ -131,3 +131,6 @@ dist
 
 # Migration Prisma
 /prisma/migrations
+
+# Zip file
+*.zip

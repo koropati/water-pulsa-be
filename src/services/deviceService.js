@@ -137,7 +137,7 @@ const createDevice = async (deviceData, creatorId, creatorRole) => {
     } = deviceData;
 
     // Determine the owner of the device
-    const ownerId = (userId && creatorRole === ROLES.ADMIN) ? userId : creatorId;
+    const ownerId = (userId && creatorRole === ROLES.ADMIN || creatorRole == ROLES.SUPER_ADMIN) ? userId : creatorId;
 
     // Check if device key already exists
     const existingDevice = await prisma.device.findFirst({
@@ -361,7 +361,7 @@ const getDeviceStats = async (userId, userRole) => {
     const where = {};
 
     // Non-admin users can only see their own devices
-    if (userRole !== ROLES.ADMIN) {
+    if (userRole === ROLES.STAFF || userRole === ROLES.USER) {
         where.userId = userId;
     }
 

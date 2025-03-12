@@ -57,18 +57,34 @@ const {
  */
 const getAllTokens = async (req, res, next) => {
     try {
+        // Log the raw query parameter to see what's coming in
+        console.log('Raw deviceId query param:', req.query.deviceId);
+        
+        // Properly handle the deviceId parameter
+        let deviceId = undefined;
+        if (req.query.deviceId) {
+            // If it's an array, take the last item (most likely the intended value)
+            if (Array.isArray(req.query.deviceId)) {
+                deviceId = req.query.deviceId[req.query.deviceId.length - 1];
+            } else {
+                deviceId = req.query.deviceId;
+            }
+        }
+        
         const options = {
             ...getPaginationParams(req),
-            deviceId: req.query.deviceId,
+            deviceId: deviceId,
             status: req.query.status
         };
+        
+        console.log('Processed deviceId:', deviceId);
 
         const result = await tokenService.getAllTokens(
             options,
             req.user.id,
             req.user.role
         );
-
+        
         return paginate(
             res,
             result.tokens,

@@ -54,8 +54,7 @@ const getAllApiKeys = async (req, res, next) => {
         const options = {
             ...getPaginationParams(req),
             status: req.query.status !== undefined ?
-                req.query.status === 'true' :
-                undefined
+                req.query.status === 'true' : undefined
         };
 
         const result = await apiKeyService.getAllApiKeys(
@@ -233,6 +232,83 @@ const updateApiKey = async (req, res, next) => {
 /**
  * @swagger
  * /api-keys/{id}:
+ *   patch:
+ *     summary: Partially update an API key
+ *     tags: [API Keys]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: API key ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: API key name/description
+ *               status:
+ *                 type: boolean
+ *                 description: API key status (active/inactive)
+ *               expiresAt:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Expiration date (ISO 8601 format) or null to remove expiration
+ *     responses:
+ *       200:
+ *         description: API key partially updated successfully
+ *       400:
+ *         description: Validation error or no fields to update
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - no permission to update this API key
+ *       404:
+ *         description: API key not found
+ *       500:
+ *         description: Server error
+ */
+const updateApiKeyPartial = async (req, res, next) => {
+    try {
+        // Only update fields that are explicitly sent in the request
+        const updateData = {};
+        const allowedFields = ['name', 'status', 'expiresAt'];
+
+        allowedFields.forEach(field => {
+            if (req.body[field] !== undefined) {
+                updateData[field] = req.body[field];
+            }
+        });
+
+        // Don't proceed if no fields to update
+        if (Object.keys(updateData).length === 0) {
+            return error(res, STATUS_CODES.BAD_REQUEST, 'No valid fields to update provided');
+        }
+
+        const updatedApiKey = await apiKeyService.updateApiKey(
+            req.params.id,
+            updateData,
+            req.user.id,
+            req.user.role
+        );
+
+        return success(res, STATUS_CODES.SUCCESS, 'API key partially updated successfully', updatedApiKey);
+    } catch (err) {
+        logger.error(`Error updating API key partially: ${err.message}`);
+        return next(err);
+    }
+};
+
+/**
+ * @swagger
+ * /api-keys/{id}:
  *   delete:
  *     summary: Delete an API key
  *     tags: [API Keys]
@@ -369,6 +445,7 @@ module.exports = {
     getApiKeyById,
     createApiKey,
     updateApiKey,
+    updateApiKeyPartial,
     deleteApiKey,
     getApiKeyUsage,
     getApiKeyStats

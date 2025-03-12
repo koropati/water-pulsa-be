@@ -46,7 +46,7 @@ const getAllUsageLogs = async (options, userId, userRole) => {
     }
 
     // Non-admin users can only see their own usage logs
-    if (userRole !== ROLES.ADMIN) {
+    if (userRole === ROLES.STAFF || userRole === ROLES.USER) {
         where.device = {
             userId
         };
@@ -110,7 +110,7 @@ const getUsageLogsByDevice = async (deviceId, options, userId, userRole) => {
     const device = await prisma.device.findFirst({
         where: {
             id: deviceId,
-            ...(userRole !== ROLES.ADMIN ? {
+            ...(userRole === ROLES.STAFF || userRole === ROLES.USER ? {
                 userId
             } : {})
         }
@@ -268,7 +268,7 @@ const getUsageStats = async (userId, userRole, options = {}) => {
     };
 
     // Non-admin users can only see their own usage logs
-    if (userRole !== ROLES.ADMIN) {
+    if (userRole === ROLES.STAFF || userRole === ROLES.USER) {
         where.device = {
             userId
         };

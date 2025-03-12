@@ -223,6 +223,88 @@ const updateUser = async (req, res, next) => {
 /**
  * @swagger
  * /users/{id}:
+ *   patch:
+ *     summary: Partially update a user
+ *     tags: [Users]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: User's name
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: User's email
+ *               role:
+ *                 type: string
+ *                 enum: [ADMIN, STAFF, USER]
+ *                 description: User role (admin only)
+ *               isActive:
+ *                 type: boolean
+ *                 description: User active status (admin only)
+ *     responses:
+ *       200:
+ *         description: User partially updated successfully
+ *       400:
+ *         description: Validation error or no fields to update
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - requires admin role
+ *       404:
+ *         description: User not found
+ *       409:
+ *         description: Email already exists
+ *       500:
+ *         description: Server error
+ */
+const updateUserPartial = async (req, res, next) => {
+    try {
+        // Only update fields that are explicitly sent in the request
+        const updateData = {};
+        const allowedFields = ['name', 'email', 'role', 'isActive'];
+
+        allowedFields.forEach(field => {
+            if (req.body[field] !== undefined) {
+                updateData[field] = req.body[field];
+            }
+        });
+
+        // Don't proceed if no fields to update
+        if (Object.keys(updateData).length === 0) {
+            return error(res, STATUS_CODES.BAD_REQUEST, 'No valid fields to update provided');
+        }
+
+        const updatedUser = await userService.updateUser(
+            req.params.id,
+            updateData,
+            req.user.role
+        );
+
+        return success(res, STATUS_CODES.SUCCESS, 'User partially updated successfully', updatedUser);
+    } catch (err) {
+        logger.error(`Error updating user partially: ${err.message}`);
+        return next(err);
+    }
+};
+
+/**
+ * @swagger
+ * /users/{id}:
  *   delete:
  *     summary: Delete a user
  *     tags: [Users]
@@ -423,6 +505,7 @@ module.exports = {
     getUserById,
     createUser,
     updateUser,
+    updateUserPartial,
     deleteUser,
     getUserStats,
     getUsersForDropdown,

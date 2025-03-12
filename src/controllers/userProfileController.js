@@ -97,6 +97,89 @@ const updateUserProfile = async (req, res, next) => {
 };
 
 /**
+ * @swagger
+ * /user-profile:
+ *   patch:
+ *     summary: Partially update user profile
+ *     tags: [User Profile]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: User's name
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: User's email
+ *     responses:
+ *       200:
+ *         description: User profile partially updated successfully
+ *       400:
+ *         description: Validation error, email in use, or no fields to update
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+const updateUserProfilePartial = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const updateData = {};
+
+        // Only update fields that are explicitly sent in the request
+        if (req.body.name !== undefined) updateData.name = req.body.name;
+        if (req.body.email !== undefined) updateData.email = req.body.email;
+
+        // Check if email is already in use by another user
+        if (updateData.email && updateData.email !== req.user.email) {
+            const emailExists = await prisma.user.findFirst({
+                where: {
+                    email: updateData.email,
+                    NOT: {
+                        id: userId
+                    }
+                }
+            });
+
+            if (emailExists) {
+                return error(res, STATUS_CODES.BAD_REQUEST, 'Email already in use');
+            }
+        }
+
+        // Don't proceed if no fields to update
+        if (Object.keys(updateData).length === 0) {
+            return error(res, STATUS_CODES.BAD_REQUEST, 'No valid fields to update provided');
+        }
+
+        // Update user
+        const updatedUser = await prisma.user.update({
+            where: {
+                id: userId
+            },
+            data: updateData,
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true
+            }
+        });
+
+        return success(res, STATUS_CODES.SUCCESS, 'User profile partially updated successfully', updatedUser);
+    } catch (err) {
+        logger.error(`Error updating user profile partially: ${err.message}`);
+        return next(err);
+    }
+};
+
+/**
  * Delete current user account
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
@@ -266,6 +349,7 @@ const updateUserSettings = async (req, res, next) => {
 module.exports = {
     getCurrentUser,
     updateUserProfile,
+    updateUserProfilePartial,
     deleteUserAccount,
     changePassword,
     updateUserSettings
