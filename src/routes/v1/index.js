@@ -10,6 +10,7 @@ const usageRoutes = require('./usage');
 const profileRoutes = require('./profiles');
 const deviceIoTRoutes = require('./device');
 const userProfileRoutes = require('./userProfile');
+const mqttRoutes = require('./mqtt');
 
 const router = express.Router();
 
@@ -24,5 +25,6 @@ router.use('/usage', usageRoutes);
 router.use('/profiles', profileRoutes);
 router.use('/device', deviceIoTRoutes); 
 router.use('/user-profile', userProfileRoutes);
+router.use('/mqtt', mqttRoutes);
 
 module.exports = router;

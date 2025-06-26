@@ -1761,6 +1761,211 @@
         }
       }
     },
+    "/mqtt/status": {
+      "get": {
+        "summary": "Get MQTT service status",
+        "tags": [
+          "MQTT"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "MQTT service status"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/mqtt/send-command": {
+      "post": {
+        "summary": "Send command to a specific device via MQTT",
+        "tags": [
+          "MQTT"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "deviceKey",
+                  "command"
+                ],
+                "properties": {
+                  "deviceKey": {
+                    "type": "string"
+                  },
+                  "command": {
+                    "type": "string",
+                    "enum": [
+                      "reboot",
+                      "update_config",
+                      "check_status",
+                      "reset_balance"
+                    ]
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Additional command data"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Command sent successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Device not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/mqtt/broadcast": {
+      "post": {
+        "summary": "Broadcast command to all devices via MQTT",
+        "tags": [
+          "MQTT"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "command"
+                ],
+                "properties": {
+                  "command": {
+                    "type": "string",
+                    "enum": [
+                      "system_update",
+                      "emergency_stop",
+                      "config_update"
+                    ]
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Additional command data"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Broadcast sent successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - requires admin role"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/mqtt/device-status": {
+      "get": {
+        "summary": "Get online/offline status of devices",
+        "tags": [
+          "MQTT"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "timeThreshold",
+            "schema": {
+              "type": "integer",
+              "default": 300
+            },
+            "description": "Time threshold in seconds to consider device offline"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Device status list"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/mqtt/reconnect": {
+      "post": {
+        "summary": "Reconnect MQTT service",
+        "tags": [
+          "MQTT"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "MQTT reconnection initiated"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - requires admin role"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
     "/profiles": {
       "get": {
         "summary": "Get current user's profile",
@@ -3049,6 +3254,10 @@
     {
       "name": "Devices",
       "description": "Device management"
+    },
+    {
+      "name": "MQTT",
+      "description": "MQTT communication management"
     },
     {
       "name": "Profiles",

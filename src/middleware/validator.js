@@ -448,7 +448,69 @@ const rules = {
     ]
 };
 
+const mqttRules = {
+    sendMQTTCommand: [
+        body('deviceKey')
+            .notEmpty()
+            .withMessage('Device key is required')
+            .isString()
+            .withMessage('Device key must be a string'),
+        body('command')
+            .notEmpty()
+            .withMessage('Command is required')
+            .isIn(['reboot', 'update_config', 'check_status', 'reset_balance', 'emergency_stop', 'sync_time'])
+            .withMessage('Invalid command type'),
+        body('data')
+            .optional()
+            .isObject()
+            .withMessage('Data must be an object')
+    ],
+
+    broadcastMQTTCommand: [
+        body('command')
+            .notEmpty()
+            .withMessage('Command is required')
+            .isIn(['system_update', 'emergency_stop', 'config_update', 'maintenance_mode', 'sync_time'])
+            .withMessage('Invalid broadcast command type'),
+        body('data')
+            .optional()
+            .isObject()
+            .withMessage('Data must be an object')
+    ],
+
+    getMQTTLogs: [
+        query('page')
+            .optional()
+            .isInt({ min: 1 })
+            .withMessage('Page must be a positive integer'),
+        query('limit')
+            .optional()
+            .isInt({ min: 1, max: 100 })
+            .withMessage('Limit must be between 1 and 100'),
+        query('deviceKey')
+            .optional()
+            .isString()
+            .withMessage('Device key must be a string'),
+        query('startDate')
+            .optional()
+            .isISO8601()
+            .withMessage('Start date must be a valid ISO 8601 date'),
+        query('endDate')
+            .optional()
+            .isISO8601()
+            .withMessage('End date must be a valid ISO 8601 date')
+    ],
+
+    getDeviceStatus: [
+        query('timeThreshold')
+            .optional()
+            .isInt({ min: 60, max: 3600 })
+            .withMessage('Time threshold must be between 60 and 3600 seconds')
+    ]
+};
+
 module.exports = {
     validate,
-    rules
+    rules,
+    ...mqttRules
 };

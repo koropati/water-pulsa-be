@@ -1,4 +1,4 @@
-// src/app.js
+// src/app.js - Updated with MQTT integration
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -8,33 +8,24 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('../swagger.json');
+
 // Custom Swagger documentation with auth UI
-const {
-    setupCustomSwaggerUI
-} = require('./config/custom-swagger');
+const { setupCustomSwaggerUI } = require('./config/custom-swagger');
 
-const {
-    handleError
-} = require('./middleware/error');
-const {
-    logger
-} = require('./utils/logger');
+const { handleError } = require('./middleware/error');
+const { logger } = require('./utils/logger');
 
-const routes = require('./routes/index')
+// Import routes
+const routes = require('./routes/index');
 
-// Inicializar la aplicación Express
+// Initialize Express app
 const app = express();
 
 // Parse JSON bodies
-app.use(express.json({
-    limit: '10kb'
-}));
+app.use(express.json({ limit: '10kb' }));
 
 // Parse URL-encoded bodies
-app.use(express.urlencoded({
-    extended: true,
-    limit: '10kb'
-}));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // Set security HTTP headers
 app.use(helmet());
@@ -50,26 +41,27 @@ if (process.env.NODE_ENV === 'development') {
     }));
 }
 
-// Enable CORS dengan whitelist origin
+// Enable CORS with whitelist origin
 const allowedOrigins = process.env.ALLOWED_ORIGINS ?
-    process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
+    process.env.ALLOWED_ORIGINS.split(',') : 
+    ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
 
 app.use(cors({
     origin: function(origin, callback) {
-        // Izinkan permintaan tanpa origin (seperti aplikasi mobile atau curl)
+        // Allow requests with no origin (like mobile apps or curl)
         if (!origin) return callback(null, true);
         
         if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
             callback(null, true);
         } else {
-            callback(null, true); // Aktifkan semua origin untuk menyelesaikan masalah
-            // Jika ingin membatasi origin kembali, ubah baris di atas ke:
+            callback(null, true); // Enable all origins for now
+            // To restrict origins again, change the line above to:
             // callback(new Error('Not allowed by CORS'));
         }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
-    credentials: true // Aktifkan credentials jika perlu (cookies, authorization headers)
+    credentials: true // Enable credentials if needed (cookies, authorization headers)
 }));
 
 // Rate limiting
@@ -88,9 +80,37 @@ app.use(compression());
 // Serve static files from the 'uploads' directory
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
+// MQTT status endpoint (public)
+app.get('/mqtt-status', (req, res) => {
+    try {
+        const mqttService = require('./services/mqttService');
+        const status = mqttService.getStatus();
+        res.status(200).json({
+            status: 'ok',
+            mqtt: status,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to get MQTT status',
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Swagger documentation
 setupCustomSwaggerUI(app, swaggerDocument);
-// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // API Routes
 app.use('', routes);
@@ -106,5 +126,4 @@ app.all('*', (req, res) => {
 // Error handling middleware
 app.use(handleError);
 
-// Exportar la aplicación
 module.exports = app;
